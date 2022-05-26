@@ -8,13 +8,15 @@ import CustomListSearchQueryViewer from "./CustomListSearchQueryViewer";
 import EditableInput from "./EditableInput";
 
 export interface CustomListSearchProps {
+  autoUpdate?: boolean;
   entryPoints: string[];
   languages: LanguagesData;
   library: LibraryData;
   searchParams: CustomListEditorSearchParams;
   startingTitle?: string;
-  search: () => void;
+  updateAutoUpdate?: (value: boolean) => void;
   updateSearchParam?: (name: string, value) => void;
+  search: () => void;
   addAdvSearchQuery?: (builderName: string, query: AdvancedSearchQuery) => void;
   updateAdvSearchQueryBoolean?: (
     builderName: string,
@@ -37,10 +39,12 @@ const sorts = [
 ];
 
 const CustomListSearch = ({
+  autoUpdate,
   entryPoints,
   library,
   searchParams,
   startingTitle,
+  updateAutoUpdate,
   updateSearchParam,
   search,
   addAdvSearchQuery,
@@ -84,10 +88,10 @@ const CustomListSearch = ({
     );
   };
 
-  const canSearch =
-    searchParams.terms ||
-    searchParams.advanced.include.query ||
-    searchParams.advanced.exclude.query;
+  const canSearch = true;
+    // searchParams.terms ||
+    // searchParams.advanced.include.query ||
+    // searchParams.advanced.exclude.query;
 
   const searchForm = (
     <div className="search-titles">
@@ -157,7 +161,7 @@ const CustomListSearch = ({
       </div>
 
       <button
-        className="btn left-align"
+        className="btn left-align hidden"
         disabled={!canSearch}
         type="button"
         onClick={search}
@@ -167,6 +171,16 @@ const CustomListSearch = ({
           <SearchIcon />
         </span>
       </button>
+
+      <div className="auto-update-options">
+        <EditableInput
+          type="checkbox"
+          name="auto-update"
+          checked={autoUpdate}
+          label={"Automatically keep this list updated using these search parameters"}
+          onChange={() => updateAutoUpdate?.(!autoUpdate)}
+        />
+      </div>
     </div>
   );
 
