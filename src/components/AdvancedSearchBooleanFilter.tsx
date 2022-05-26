@@ -1,47 +1,50 @@
 import classNames from "classnames";
 import * as React from "react";
+import { ConnectDropTarget, useDrop } from "react-dnd";
 import { AdvancedSearchQuery } from "../interfaces";
 import AdvancedSearchFilter from "./AdvancedSearchFilter";
 
 export interface AdvancedSearchBooleanFilterProps {
   onChange: (query: AdvancedSearchQuery) => void;
+  onMove: (id: String, targetId: String) => void;
   onSelect?: (query: AdvancedSearchQuery) => void;
-  onRemove: (query: AdvancedSearchQuery) => void;
+  onRemove: (id: String) => void;
   query: AdvancedSearchQuery;
   selectedQueryId?: string;
 }
 
-export interface AdvancedSearchBooleanFilterState {
-
-}
-
-export default class AdvancedSearchBooleanQuery extends React.Component<
-  AdvancedSearchBooleanFilterProps,
-  AdvancedSearchBooleanFilterState
-> {
-  private boolSelect = React.createRef<HTMLSelectElement>();
-
-  constructor(props: AdvancedSearchBooleanFilterProps) {
-    super(props);
-
-    this.state = {};
-
-    this.handleBoolChange = this.handleBoolChange.bind(this);
-    this.handleChildChange = this.handleChildChange.bind(this);
-    this.handleChildRemove = this.handleChildRemove.bind(this);
-    this.handleClick = this.handleClick.bind(this);
-    this.handleRemoveButtonClick = this.handleRemoveButtonClick.bind(this);
+const renderSeparator = (query, index) => {
+  if (index < 1) {
+    return null;
   }
 
-  handleBoolChange() {
-    const bool = this.boolSelect.current?.value;
+  return (
+    <span>
+      {query.and ? "and" : "or"}
+    </span>
+  );
+};
+
+export default function AdvancedSearchBooleanQuery({
+  onChange,
+  onMove,
+  onSelect,
+  onRemove,
+  query,
+  selectedQueryId,
+}: AdvancedSearchBooleanFilterProps) {
+  const children = query && (query.and || query.or);
+
+  if (!children) {
+    return null;
+  }
+
+  const boolSelect = React.useRef<HTMLSelectElement>(null);
+
+  const handleBoolChange = () => {
+    const bool = boolSelect.current?.value;
 
     if (bool) {
-      const {
-        onChange,
-        query,
-      } = this.props;
-
       onChange({
         id: query.id,
         [bool]: [
@@ -49,14 +52,9 @@ export default class AdvancedSearchBooleanQuery extends React.Component<
         ]
       });
     }
-  }
+  };
 
-  handleChildChange(changedChild: AdvancedSearchQuery) {
-    const {
-      onChange,
-      query,
-    } = this.props;
-
+  const handleChildChange = (changedChild: AdvancedSearchQuery) => {
     const bool = query.and ? "and" : "or";
     const children = query[bool];
     const index = children.findIndex((child) => child.id === changedChild.id);
@@ -72,141 +70,93 @@ export default class AdvancedSearchBooleanQuery extends React.Component<
     onChange(nextQuery);
   }
 
-  handleChildRemove(removedChild: AdvancedSearchQuery) {
-    const {
-      onChange,
-      onSelect,
-      query,
-    } = this.props;
-
-    const bool = query.and ? "and" : "or";
-    const children = query[bool];
-    const nextChildren = children.filter((child) => child.id !== removedChild.id);
-
-    let nextQuery;
-
-    if (nextChildren.length === 1) {
-      nextQuery = {
-        ...nextChildren[0],
-        id: query.id,
-      };
-    } else {
-      nextQuery = {
-        id: query.id,
-        [bool]: nextChildren,
-      };
-    }
-
-    if (onSelect) {
-      onSelect(nextQuery);
-    }
-
-    onChange(nextQuery);
-  }
-
-  handleClick(event: React.SyntheticEvent) {
+  const handleClick = (event: React.SyntheticEvent) => {
     event.stopPropagation();
     event.preventDefault();
-
-    const {
-      onSelect,
-      query,
-    } = this.props;
 
     if (onSelect) {
       onSelect(query);
     }
   }
 
-  handleRemoveButtonClick(event: React.SyntheticEvent) {
+  const handleRemoveButtonClick = (event: React.SyntheticEvent) => {
     event.stopPropagation();
     event.preventDefault();
 
-    const {
-      onRemove,
-      query,
-    } = this.props;
-
-    onRemove(query);
-  }
-
-  renderSeparator(index) {
-    const {
-      query
-    } = this.props;
-
-    if (index < 1) {
-      return null;
+    if (onRemove) {
+      onRemove(query.id);
     }
-
-    return (
-      <span>
-        {query.and ? "and" : "or"}
-      </span>
-    );
   }
 
-  render(): JSX.Element {
-    const {
-      onSelect,
-      query,
-      selectedQueryId,
-    } = this.props;
+  const [dropProps, drop]: [{ canDrop: boolean; isOver: boolean; }, ConnectDropTarget] = useDrop(
+    {
+      accept: "filter",
+      canDrop: (item: any) => item.id !== query.id,
+      drop: (item: any, monitor) => {
+        if (!monitor.didDrop()) {
+          onMove(item.id, query.id);
 
-    const children = query && (query.and || query.or);
+          return {
+            id: query.id,
+          };
+        }
+      },
+      collect: (monitor) => ({
+        canDrop: !!monitor.canDrop(),
+        isOver: !!monitor.isOver({ shallow: true }),
+      })
+    },
+    [query.id, onMove],
+  );
 
-    if (!children) {
-      return null;
-    }
+  const className = classNames({
+    "advanced-search-boolean-filter": true,
+    "drag-drop": dropProps.isOver && dropProps.canDrop,
+    selected: selectedQueryId === query.id,
+  });
 
-    const className = classNames({
-      "advanced-search-boolean-filter": true,
-      selected: selectedQueryId === query.id,
-    });
+  return (
+    <div
+      aria-selected={selectedQueryId === query.id}
+      className={className}
+      onClick={handleClick}
+      ref={drop}
+      role="treeitem"
+    >
+      <header>
+        <div>
+          <select
+            ref={boolSelect}
+            onBlur={handleBoolChange}
+            onChange={handleBoolChange}
+            value={query.and ? "and" : "or"}
+          >
+            <option aria-selected={!!query.and} value="and">All of the following filters must be matched:</option>
+            <option aria-selected={!!query.or} value="or">Any of the following filters may be matched:</option>
+          </select>
+        </div>
 
-    return (
-      <div
-        aria-selected={selectedQueryId === query.id}
-        className={className}
-        onClick={this.handleClick}
-        role="treeitem"
-      >
-        <header>
-          <div>
-            <select
-              ref={this.boolSelect}
-              onBlur={this.handleBoolChange}
-              onChange={this.handleBoolChange}
-              value={query.and ? "and" : "or"}
-            >
-              <option aria-selected={!!query.and} value="and">All</option>
-              <option aria-selected={!!query.or} value="or">Any</option>
-            </select>
-            {" "}
-            of the following filters {query.and ? "must" : "may"} be matched:
-          </div>
+        <button onClick={handleRemoveButtonClick}>×</button>
+      </header>
 
-          <button onClick={this.handleRemoveButtonClick}>×</button>
-        </header>
-
-        <ul>
-          {
-            children.map((child, index) => (
-              <li key={child.id}>
-                {this.renderSeparator(index)}
-                {" "}
-                <AdvancedSearchFilter
-                  onChange={this.handleChildChange}
-                  onSelect={onSelect}
-                  onRemove={this.handleChildRemove}
-                  query={child}
-                  selectedQueryId={selectedQueryId}
-                />
-              </li>
-            ))
-          }
-        </ul>
-      </div>
-    );
-  }
+      <ul>
+        {
+          children.map((child, index) => (
+            <li key={child.id}>
+              {renderSeparator(query, index)}
+              {" "}
+              <AdvancedSearchFilter
+                onChange={handleChildChange}
+                onMove={onMove}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                query={child}
+                selectedQueryId={selectedQueryId}
+              />
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  );
 }

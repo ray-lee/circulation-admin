@@ -1,7 +1,9 @@
 import * as React from "react";
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
 import { AdvancedSearchQuery } from "../interfaces";
-import AdvancedSearchValueQueryInput from "./AdvancedSearchValueQueryInput";
-import AdvancedSearchFilter from "./AdvancedSearchFilter";
+import AdvancedSearchFilterInput from "./AdvancedSearchFilterInput";
+import AdvancedSearchFilterView from "./AdvancedSearchFilterView";
 
 export interface AdvancedSearchProps {
 
@@ -32,6 +34,7 @@ export default class AdvancedSearch extends React.Component<
     this.state = {};
 
     this.handleQueryChange = this.handleQueryChange.bind(this);
+    this.handleQueryMove = this.handleQueryMove.bind(this);
     this.handleQueryRemove = this.handleQueryRemove.bind(this);
     this.handleQuerySelect = this.handleQuerySelect.bind(this);
     this.handleValueQueryAdd = this.handleValueQueryAdd.bind(this);
@@ -43,10 +46,38 @@ export default class AdvancedSearch extends React.Component<
     });
   }
 
-  handleQueryRemove() {
+  handleQueryMove(id: string, targetId: string) {
+    console.log(`${id} -> ${targetId}`);
+
+    const {
+      query: currentQuery,
+    } = this.state;
+
+    const query = this.findDescendantQuery(currentQuery, id);
+
+    const newQuery = {
+      ...query,
+      id: newId(),
+    };
+
+    const afterAddQuery = this.addDescendantQuery(currentQuery, targetId, newQuery);
+    const afterRemoveQuery = this.removeDescendantQuery(afterAddQuery, id);
+
     this.setState({
-      query: undefined,
-      selectedQueryId: undefined,
+      query: afterRemoveQuery,
+      selectedQueryId: targetId,
+    });
+  }
+
+  handleQueryRemove(id: string) {
+    const {
+      query: currentQuery,
+    } = this.state;
+
+    const afterRemoveQuery = this.removeDescendantQuery(currentQuery, id);
+
+    this.setState({
+      query: afterRemoveQuery,
     });
   }
 
@@ -69,42 +100,12 @@ export default class AdvancedSearch extends React.Component<
       });
     } else {
       this.setState({
-        query: this.addQuery(currentQuery, selectedQueryId || currentQuery.id, query),
+        query: this.addDescendantQuery(currentQuery, selectedQueryId || currentQuery.id, query),
       });
     }
-    // else if (targetQuery.and) {
-    //   this.setState({
-    //     query: {
-    //       id: targetQuery.id,
-    //       and: [...targetQuery.and, query],
-    //     },
-    //   });
-    // }
-    // else if (targetQuery.or) {
-    //   this.setState({
-    //     query: {
-    //       id: targetQuery.id,
-    //       or: [...targetQuery.or, query],
-    //     },
-    //   });
-    // }
-    // else {
-    //   this.setState({
-    //     query: {
-    //       id: targetQuery.id,
-    //       and: [
-    //         {
-    //           ...targetQuery,
-    //           id: newId(),
-    //         },
-    //         query,
-    //       ],
-    //     },
-    //   });
-    // }
   }
 
-  addQuery(
+  addDescendantQuery(
     query: AdvancedSearchQuery,
     targetId: string,
     newQuery: AdvancedSearchQuery,
@@ -125,7 +126,7 @@ export default class AdvancedSearch extends React.Component<
 
       for (let i = 0; i < children.length; i++) {
         const child = children[i];
-        const updatedChild = this.addQuery(child, targetId, newQuery, oppositeBool);
+        const updatedChild = this.addDescendantQuery(child, targetId, newQuery, oppositeBool);
 
         if (updatedChild !== child) {
           const newChildren = [...children];
@@ -158,6 +159,101 @@ export default class AdvancedSearch extends React.Component<
     return query;
   }
 
+  findDescendantQuery(query: AdvancedSearchQuery, targetId: string): AdvancedSearchQuery {
+    if (query.id === targetId) {
+      return query;
+    }
+
+    if (query.and || query.or) {
+      const bool = query.and ? "and" : "or";
+      const children = query[bool];
+      const targetQuery = children.find((child) => child.id === targetId);
+
+      if (targetQuery) {
+        return targetQuery;
+      }
+
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        const targetQuery = this.findDescendantQuery(child, targetId);
+
+        if (targetQuery) {
+          return targetQuery;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  removeDescendantQuery(query: AdvancedSearchQuery, targetId: string): AdvancedSearchQuery {
+    if (query.and || query.or) {
+      const bool = query.and ? "and" : "or";
+      const children = query[bool];
+      const targetQuery = children.find((child) => child.id === targetId);
+
+      if (targetQuery) {
+        const updatedChildren = children.filter((child) => child.id !== targetId);
+
+        if (updatedChildren.length === 1) {
+          if (this.state.selectedQueryId === query.id || this.state.selectedQueryId === targetId) {
+            this.setState({
+              selectedQueryId: updatedChildren[0].id,
+            });
+          }
+
+          return {
+            ...updatedChildren[0],
+          };
+        }
+
+        // When a query is removed, set the selection to the parent.
+
+        // TODO: Maybe only set the selection to the parent if the current selection is a
+        // descendant of the removed query?
+
+        this.setState({
+          selectedQueryId: query.id,
+        });
+
+        return {
+          id: query.id,
+          [bool]: updatedChildren,
+        };
+      }
+
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        const updatedChild = this.removeDescendantQuery(child, targetId);
+
+        if (updatedChild !== child) {
+          const newChildren = [...children];
+
+          newChildren[i] = updatedChild;
+
+          const updatedQuery = {
+            id: query.id,
+            [bool]: newChildren,
+          };
+
+          return updatedQuery;
+        }
+      }
+    }
+
+    if (query.id === targetId) {
+      if (this.state.selectedQueryId === query.id) {
+        this.setState({
+          selectedQueryId: undefined,
+        });
+      }
+
+      return undefined;
+    }
+
+    return query;
+  }
+
   render(): JSX.Element {
     const {
       query,
@@ -167,19 +263,20 @@ export default class AdvancedSearch extends React.Component<
     console.log(query);
 
     return (
-      <div className="advanced-search">
-        <AdvancedSearchValueQueryInput onAdd={this.handleValueQueryAdd} />
+      <DndProvider backend={HTML5Backend}>
+        <div className="advanced-search">
+          <AdvancedSearchFilterInput onAdd={this.handleValueQueryAdd} />
 
-        <div className="advanced-search-filters" role="tree">
-          <AdvancedSearchFilter
+          <AdvancedSearchFilterView
             onChange={this.handleQueryChange}
+            onMove={this.handleQueryMove}
             onRemove={this.handleQueryRemove}
             onSelect={this.handleQuerySelect}
             query={query}
             selectedQueryId={selectedQueryId}
           />
         </div>
-      </div>
+      </DndProvider>
     );
   }
 }

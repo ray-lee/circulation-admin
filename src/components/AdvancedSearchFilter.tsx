@@ -5,25 +5,26 @@ import AdvancedSearchValueFilter from "./AdvancedSearchValueFilter";
 
 export interface AdvancedSearchFilterProps {
   onChange: (query: AdvancedSearchQuery) => void;
+  onMove: (id: String, targetId: String) => void;
   onSelect?: (query: AdvancedSearchQuery) => void;
-  onRemove: (query: AdvancedSearchQuery) => void;
+  onRemove: (id: String) => void;
   query: AdvancedSearchQuery;
   selectedQueryId?: string;
 }
 
-export default (props: AdvancedSearchFilterProps): JSX.Element => {
-  const {
-    onChange,
-    onSelect,
-    onRemove,
-    query,
-    selectedQueryId,
-  } = props;
-
+export default ({
+  onChange,
+  onMove,
+  onSelect,
+  onRemove,
+  query,
+  selectedQueryId,
+}: AdvancedSearchFilterProps): JSX.Element => {
   if (query && (query.and || query.or)) {
     return (
       <AdvancedSearchBooleanFilter
         onChange={onChange}
+        onMove={onMove}
         onSelect={onSelect}
         onRemove={onRemove}
         query={query}
@@ -35,6 +36,7 @@ export default (props: AdvancedSearchFilterProps): JSX.Element => {
   if (query) {
     return (
       <AdvancedSearchValueFilter
+        onMove={onMove}
         onSelect={onSelect}
         onRemove={onRemove}
         query={query}
@@ -43,5 +45,5 @@ export default (props: AdvancedSearchFilterProps): JSX.Element => {
     );
   }
 
-  return <span>No filters applied.</span>;
+  return <span>No filters configured.</span>;
 };

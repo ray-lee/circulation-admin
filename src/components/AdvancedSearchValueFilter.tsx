@@ -1,98 +1,108 @@
 import * as React from "react";
 import classNames from "classnames";
 import { AdvancedSearchQuery } from "../interfaces";
+import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget, useDrag, useDrop } from "react-dnd";
 
 export interface AdvancedSearchValueFilterProps {
-  onRemove: (query: AdvancedSearchQuery) => void;
+  onMove: (id: String, targetId: String) => void;
+  onRemove: (id: String) => void;
   onSelect?: (query: AdvancedSearchQuery) => void;
   query: AdvancedSearchQuery;
   selected?: boolean;
 }
 
-export interface AdvancedSearchValueFilterState {
+function getOpSymbol(op) {
+  switch (op) {
+    case "contains": return ":";
+    case "eq": return "=";
+    case "neq": return "≠";
+    case "gt": return ">";
+    case "lt": return "<";
+  }
 
+  return op;
 }
 
-export default class AdvancedSearchValueFilter extends React.Component<
-  AdvancedSearchValueFilterProps,
-  AdvancedSearchValueFilterState
-> {
-  constructor(props: AdvancedSearchValueFilterProps,
-    ) {
-    super(props);
-
-    this.state = {};
-
-    this.handleClick = this.handleClick.bind(this);
-    this.handleRemoveButtonClick = this.handleRemoveButtonClick.bind(this);
+export default function AdvancedSearchValueFilter({
+  onMove,
+  onRemove,
+  onSelect,
+  query,
+  selected,
+}: AdvancedSearchValueFilterProps) {
+  if (!query) {
+    return null;
   }
 
-  getOpSymbol(op) {
-    switch (op) {
-      case "contains": return ":";
-      case "eq": return "=";
-    }
-
-    return op;
-  }
-
-  handleClick(event: React.SyntheticEvent) {
+  const handleClick = (event: React.SyntheticEvent) => {
     event.stopPropagation();
     event.preventDefault();
-
-    const {
-      onSelect,
-      query,
-    } = this.props;
 
     if (onSelect) {
       onSelect(query);
     }
   }
 
-  handleRemoveButtonClick(event: React.SyntheticEvent) {
+  const handleRemoveButtonClick = (event: React.SyntheticEvent) => {
     event.stopPropagation();
     event.preventDefault();
 
-    const {
-      onRemove,
-      query,
-    } = this.props;
-
-    onRemove(query);
+    onRemove(query.id);
   }
 
-  render(): JSX.Element {
-    const {
-      query,
-      selected,
-    } = this.props;
+  const [, drag]: [{}, ConnectDragSource, ConnectDragPreview] = useDrag(
+    {
+      type: "filter",
+      item: {
+        id: query.id,
+      }
+    },
+    [query.id],
+  );
 
-    if (!query) {
-      return null;
-    }
+  const [dropProps, drop]: [{ canDrop: boolean; isOver: boolean; }, ConnectDropTarget] = useDrop(
+    {
+      accept: "filter",
+      canDrop: (item: any) => item.id !== query.id,
+      drop: (item: any, monitor) => {
+        if (!monitor.didDrop()) {
+          onMove(item.id, query.id);
 
-    const {
-      key,
-      op,
-      value,
-    } = query;
+          return {
+            id: query.id,
+          };
+        }
+      },
+      collect: (monitor) => ({
+        canDrop: !!monitor.canDrop(),
+        isOver: !!monitor.isOver(),
+      })
+    },
+    [query.id, onMove],
+  );
 
-    const className = classNames({
-      "advanced-search-value-filter": true,
-      selected
-    });
+  const {
+    key,
+    op,
+    value,
+  } = query;
 
-    return (
-      <div
-        aria-selected={selected}
-        className={className}
-        onClick={this.handleClick}
-        role="treeitem"
-      >
-        <span>{key} {this.getOpSymbol(op)} {value}</span>
-        <button onClick={this.handleRemoveButtonClick}>×</button>
-      </div>
-    );
-  }
+  const className = classNames({
+    "advanced-search-value-filter": true,
+    "drag-drop": dropProps.isOver && dropProps.canDrop,
+    selected,
+  });
+
+  return (
+    <div
+      aria-selected={selected}
+      className={className}
+      onClick={handleClick}
+      ref={(node) => drag(drop(node))}
+      role="treeitem"
+    >
+      <span>{key} {getOpSymbol(op)} {value}</span>
+      <button onClick={handleRemoveButtonClick}>×</button>
+    </div>
+  );
 }

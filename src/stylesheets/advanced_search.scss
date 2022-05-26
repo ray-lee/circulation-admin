@@ -1,8 +1,15 @@
 .advanced-search {
   margin-bottom: 10px;
 
-  .advanced-search-filters {
+  .advanced-search-filter-view {
     display: flex;
+    align-items: flex-start;
+  }
+
+  .advanced-search-filter-tree-view {
+    display: flex;
+    flex: 1 1 auto;
+    margin-top: 10px;
     border-radius: 5px;
     border: 1px solid #DDD;
     padding: 4px;
@@ -17,6 +24,7 @@
     flex-basis: 100%;
     border-radius: 5px;
     border: 1px solid #DDD;
+    background: white;
 
     header {
       display: flex;
@@ -63,6 +71,11 @@
       outline: 1px solid black;
       outline-offset: -1px;
     }
+
+    &.drag-drop {
+      background-color: #FC844357;
+      outline: 1px dotted black;
+    }
   }
 
   .advanced-search-value-filter {
@@ -76,7 +89,6 @@
     button {
       border: none;
       border-radius: 0 5px 5px 0;
-      border-left: 1px solid white;
       padding: 4px 8px;
       background-color: inherit;
     }
@@ -84,6 +96,40 @@
     &.selected {
       outline: 1px solid black;
       outline-offset: -1px;
+    }
+
+    &.drag-drop {
+      background-color: #FC844357;
+      outline: 1px dotted black;
+    }
+  }
+
+  .advanced-search-filter-code-view {
+    flex: 0 0 auto;
+    position: relative;
+    font: 9pt monospace;
+
+    > button {
+      border: 1px solid #DDD;
+      border-radius: 5px;
+      padding: 0;
+      position: absolute;
+      right: -36px;
+      top: 10px;
+      width: 32px;
+      height: 32px;
+      background: white;
+      color: black;
+    }
+
+    > pre {
+      margin: 10px 0 0 4px;
+      border-radius: 5px;
+      border: 1px solid #DDD;
+      padding: 4px 16px 4px 4px;
+      background: inherit;
+      min-height: 12px;
+      max-height: 400px;
     }
   }
 }
