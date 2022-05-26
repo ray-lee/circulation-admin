@@ -3,6 +3,7 @@ import EditableInput from "./EditableInput";
 import SearchIcon from "./icons/SearchIcon";
 import { LanguagesData, LibraryData } from "../interfaces";
 import { Button, Panel, Form } from "library-simplified-reusable-components";
+import AdvancedSearch from "./AdvancedSearch";
 
 export interface CustomListSearchProps {
   search: (searchTerms: string, sortBy: string, language: string) => void;
@@ -162,11 +163,17 @@ export default class CustomListSearch extends React.Component<
     );
   }
 
+  renderAdvancedSearch() {
+    return (
+      <AdvancedSearch />
+    );
+  }
+
   render(): JSX.Element {
     const searchForm = (
       <Form
         onSubmit={this.submitSearch}
-        content={[this.renderSearchBox(), this.renderSearchOptions()]}
+        content={[this.renderAdvancedSearch()]}
         buttonClass="left-align"
         buttonContent={
           <span>
