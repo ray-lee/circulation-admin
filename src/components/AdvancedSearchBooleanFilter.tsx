@@ -166,18 +166,21 @@ export default class AdvancedSearchBooleanQuery extends React.Component<
 
     return (
       <div
+        aria-selected={selectedQueryId === query.id}
         className={className}
         onClick={this.handleClick}
+        role="treeitem"
       >
         <header>
           <div>
             <select
               ref={this.boolSelect}
+              onBlur={this.handleBoolChange}
               onChange={this.handleBoolChange}
               value={query.and ? "and" : "or"}
             >
-              <option value="and">All</option>
-              <option value="or">Any</option>
+              <option aria-selected={!!query.and} value="and">All</option>
+              <option aria-selected={!!query.or} value="or">Any</option>
             </select>
             {" "}
             of the following filters {query.and ? "must" : "may"} be matched:
@@ -204,6 +207,6 @@ export default class AdvancedSearchBooleanQuery extends React.Component<
           }
         </ul>
       </div>
-    )
+    );
   }
 }

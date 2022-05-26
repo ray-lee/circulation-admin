@@ -85,25 +85,28 @@ export default class AdvancedSearchValueQueryInput extends React.Component<
     return (
       <div className="advanced-search-param-entry">
         <select
+          onBlur={this.handleKeyChange}
           onChange={this.handleKeyChange}
           ref={this.keySelect}
           value={key}
         >
-          <option value="title">title</option>
-          <option value="subject">subject</option>
-          <option value="author">author</option>
-          <option value="genre">genre</option>
-          <option value="audience">audience</option>
+          <option aria-selected={key === "title"} value="title">title</option>
+          <option aria-selected={key === "subject"} value="subject">subject</option>
+          <option aria-selected={key === "author"} value="author">author</option>
+          <option aria-selected={key === "genre"} value="genre">genre</option>
+          <option aria-selected={key === "audience"} value="audience">audience</option>
         </select>
 
         {" "}
 
         <select
+          onBlur={this.handleOpChange}
           onChange={this.handleOpChange}
           ref={this.opSelect}
           value={op}
         >
-          <option value="contains">contains</option>
+          <option aria-selected={op === "contains"} value="contains">contains</option>
+          <option aria-selected={op === "eq"} value="eq">is</option>
         </select>
 
         {" "}

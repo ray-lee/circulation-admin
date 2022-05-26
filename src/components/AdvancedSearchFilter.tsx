@@ -7,9 +7,9 @@ export interface AdvancedSearchFilterProps {
   onChange: (query: AdvancedSearchQuery) => void;
   onSelect?: (query: AdvancedSearchQuery) => void;
   onRemove: (query: AdvancedSearchQuery) => void;
-  query: AdvancedSearchQuery,
-  selectedQueryId?: string,
-};
+  query: AdvancedSearchQuery;
+  selectedQueryId?: string;
+}
 
 export default (props: AdvancedSearchFilterProps): JSX.Element => {
   const {

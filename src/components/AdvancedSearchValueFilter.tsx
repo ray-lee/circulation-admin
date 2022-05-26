@@ -3,15 +3,15 @@ import classNames from "classnames";
 import { AdvancedSearchQuery } from "../interfaces";
 
 export interface AdvancedSearchValueFilterProps {
-  onRemove: (query: AdvancedSearchQuery) => void,
-  onSelect?: (query: AdvancedSearchQuery) => void,
-  query: AdvancedSearchQuery,
-  selected?: boolean,
-};
+  onRemove: (query: AdvancedSearchQuery) => void;
+  onSelect?: (query: AdvancedSearchQuery) => void;
+  query: AdvancedSearchQuery;
+  selected?: boolean;
+}
 
 export interface AdvancedSearchValueFilterState {
 
-};
+}
 
 export default class AdvancedSearchValueFilter extends React.Component<
   AdvancedSearchValueFilterProps,
@@ -28,8 +28,9 @@ export default class AdvancedSearchValueFilter extends React.Component<
   }
 
   getOpSymbol(op) {
-    if (op === "contains") {
-      return ":"
+    switch (op) {
+      case "contains": return ":";
+      case "eq": return "=";
     }
 
     return op;
@@ -84,12 +85,14 @@ export default class AdvancedSearchValueFilter extends React.Component<
 
     return (
       <div
+        aria-selected={selected}
         className={className}
         onClick={this.handleClick}
+        role="treeitem"
       >
         <span>{key} {this.getOpSymbol(op)} {value}</span>
         <button onClick={this.handleRemoveButtonClick}>×</button>
       </div>
-    )
+    );
   }
-};
+}

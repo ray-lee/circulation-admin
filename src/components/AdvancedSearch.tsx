@@ -20,7 +20,7 @@ export const newId = (): string => {
   idCounter += 1;
 
   return id;
-}
+};
 
 export default class AdvancedSearch extends React.Component<
   AdvancedSearchProps,
@@ -123,7 +123,7 @@ export default class AdvancedSearch extends React.Component<
 
       const oppositeBool = (bool === "and") ? "or" : "and";
 
-      for (let i=0; i<children.length; i++) {
+      for (let i = 0; i < children.length; i++) {
         const child = children[i];
         const updatedChild = this.addQuery(child, targetId, newQuery, oppositeBool);
 
@@ -152,7 +152,7 @@ export default class AdvancedSearch extends React.Component<
           },
           newQuery,
         ],
-      }
+      };
     }
 
     return query;
@@ -170,7 +170,7 @@ export default class AdvancedSearch extends React.Component<
       <div className="advanced-search">
         <AdvancedSearchValueQueryInput onAdd={this.handleValueQueryAdd} />
 
-        <div className="advanced-search-filters">
+        <div className="advanced-search-filters" role="tree">
           <AdvancedSearchFilter
             onChange={this.handleQueryChange}
             onRemove={this.handleQueryRemove}
