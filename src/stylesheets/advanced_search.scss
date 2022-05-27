@@ -1,18 +1,35 @@
 .advanced-search {
   margin-bottom: 10px;
 
+  .advanced-search-filter-input {
+    > div {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    input[type="text"] {
+      width: 40em;
+    }
+
+    .form-group {
+      margin-top: 0;
+    }
+  }
+
   .advanced-search-filter-view {
     display: flex;
     align-items: flex-start;
+    border-top: 1px solid #DDD;
   }
 
   .advanced-search-filter-tree-view {
     display: flex;
     flex: 1 1 auto;
     margin-top: 10px;
-    border-radius: 5px;
-    border: 1px solid #DDD;
-    padding: 4px;
+    // border-radius: 5px;
+    // border: 1px solid #DDD;
+    // padding: 4px;
     align-items: baseline;
 
     > span {
@@ -128,7 +145,7 @@
       border: 1px solid #DDD;
       padding: 4px 16px 4px 4px;
       background: inherit;
-      min-height: 12px;
+      min-height: 41px;
       max-height: 400px;
     }
   }

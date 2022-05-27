@@ -33,11 +33,49 @@ export default class AdvancedSearch extends React.Component<
 
     this.state = {};
 
+    this.handleQueryAdd = this.handleQueryAdd.bind(this);
     this.handleQueryChange = this.handleQueryChange.bind(this);
     this.handleQueryMove = this.handleQueryMove.bind(this);
     this.handleQueryRemove = this.handleQueryRemove.bind(this);
     this.handleQuerySelect = this.handleQuerySelect.bind(this);
-    this.handleValueQueryAdd = this.handleValueQueryAdd.bind(this);
+  }
+
+  handleQueryAdd(query: AdvancedSearchQuery) {
+    const {
+      query: currentQuery,
+      selectedQueryId,
+    } = this.state;
+
+    if (!currentQuery) {
+      // If the initial query is an OR, don't select it. This allows additional ORs to be ANDed
+      // with the initial OR, instead of being added inside the OR.
+
+      this.setState({
+        query,
+        selectedQueryId: query.or ? undefined : query.id,
+      });
+    }
+    else if (!selectedQueryId) {
+      // Now create an AND, add the initial query and the new query to it, and select it.
+
+      const id = newId();
+
+      this.setState({
+        query: {
+          id,
+          and: [
+            currentQuery,
+            query,
+          ],
+        },
+        selectedQueryId: id,
+      });
+    }
+    else {
+      this.setState({
+        query: this.addDescendantQuery(currentQuery, selectedQueryId || currentQuery.id, query),
+      });
+    }
   }
 
   handleQueryChange(query: AdvancedSearchQuery) {
@@ -59,6 +97,10 @@ export default class AdvancedSearch extends React.Component<
       ...query,
       id: newId(),
     };
+
+    // FIXME: IF a boolean has two filters, and one is dropped on the other, this results in
+    // the boolean operator being swapped. Removing first, then adding, fixes this, but then
+    // if a boolean has two filters, and one is dropped onto the parent, it disappears.
 
     const afterAddQuery = this.addDescendantQuery(currentQuery, targetId, newQuery);
     const afterRemoveQuery = this.removeDescendantQuery(afterAddQuery, id);
@@ -85,24 +127,6 @@ export default class AdvancedSearch extends React.Component<
     this.setState({
       selectedQueryId: query.id,
     });
-  }
-
-  handleValueQueryAdd(query: AdvancedSearchQuery) {
-    const {
-      query: currentQuery,
-      selectedQueryId,
-    } = this.state;
-
-    if (!currentQuery) {
-      this.setState({
-        query,
-        selectedQueryId: query.id,
-      });
-    } else {
-      this.setState({
-        query: this.addDescendantQuery(currentQuery, selectedQueryId || currentQuery.id, query),
-      });
-    }
   }
 
   addDescendantQuery(
@@ -265,7 +289,7 @@ export default class AdvancedSearch extends React.Component<
     return (
       <DndProvider backend={HTML5Backend}>
         <div className="advanced-search">
-          <AdvancedSearchFilterInput onAdd={this.handleValueQueryAdd} />
+          <AdvancedSearchFilterInput onAdd={this.handleQueryAdd} />
 
           <AdvancedSearchFilterView
             onChange={this.handleQueryChange}

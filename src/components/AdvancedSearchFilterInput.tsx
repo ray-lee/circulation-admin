@@ -1,6 +1,8 @@
 import * as React from "react";
+import { Button } from "library-simplified-reusable-components";
 import { AdvancedSearchQuery } from "../interfaces";
 import { newId } from "./AdvancedSearch";
+import EditableInput from "./EditableInput";
 
 export interface AdvancedSearchFilterInputProps {
   onAdd: (query: AdvancedSearchQuery) => void;
@@ -16,8 +18,8 @@ export default class AdvancedSearchFilterInput extends React.Component<
   AdvancedSearchFilterInputProps,
   AdvancedSearchFilterInputState
 > {
-  private opSelect = React.createRef<HTMLSelectElement>();
-  private valueInput = React.createRef<HTMLInputElement>();
+  private opSelect = React.createRef<EditableInput>();
+  private valueInput = React.createRef<EditableInput>();
 
   constructor(props: AdvancedSearchFilterInputProps) {
     super(props);
@@ -34,25 +36,21 @@ export default class AdvancedSearchFilterInput extends React.Component<
     this.handleAddClick = this.handleAddClick.bind(this);
   }
 
-  handleKeyChange(event: React.SyntheticEvent) {
-    const radio: HTMLInputElement = event.currentTarget as HTMLInputElement;
-
-    if (radio.checked) {
-      this.setState({
-        key: radio.value,
-      });
-    }
+  handleKeyChange(key) {
+    this.setState({
+      key,
+    });
   }
 
   handleOpChange() {
     this.setState({
-      op: this.opSelect.current?.value,
+      op: this.opSelect.current?.getValue(),
     });
   }
 
   handleValueChange() {
     this.setState({
-      value: this.valueInput.current?.value,
+      value: this.valueInput.current?.getValue(),
     });
   }
 
@@ -66,34 +64,34 @@ export default class AdvancedSearchFilterInput extends React.Component<
       value,
     } = this.state;
 
-    this.props.onAdd({
-      id: newId(),
-      key,
-      op,
-      value: value.trim(),
-    });
+    // this.props.onAdd({
+    //   id: newId(),
+    //   key,
+    //   op,
+    //   value: value.trim(),
+    // });
 
-    // const values = value.trim().split(" or ");
+    const values = value.split("|").map((value) => value.trim());
 
-    // if (values.length === 1) {
-    //   this.props.onAdd({
-    //     id: newId(),
-    //     key,
-    //     op,
-    //     value,
-    //   });
-    // }
-    // else {
-    //   this.props.onAdd({
-    //     id: newId(),
-    //     or: values.map((val) => ({
-    //       id: newId(),
-    //       key,
-    //       op,
-    //       value: val,
-    //     })),
-    //   });
-    // }
+    if (values.length === 1) {
+      this.props.onAdd({
+        id: newId(),
+        key,
+        op,
+        value,
+      });
+    }
+    else {
+      this.props.onAdd({
+        id: newId(),
+        or: values.map((val) => ({
+          id: newId(),
+          key,
+          op,
+          value: val,
+        })),
+      });
+    }
 
     this.setState({
       value: ""
@@ -108,46 +106,86 @@ export default class AdvancedSearchFilterInput extends React.Component<
     } = this.state;
 
     return (
-      <div className="advanced-search-param-entry">
+      <div className="advanced-search-filter-input">
         <div>
-          <label><input name="key" type="radio" value="title" checked={key === "title"} onChange={this.handleKeyChange} /> title</label>
-          <label><input name="key" type="radio" value="subject" checked={key === "subject"} onChange={this.handleKeyChange} /> subject</label>
-          <label><input name="key" type="radio" value="author" checked={key === "author"} onChange={this.handleKeyChange} /> author</label>
-          <label><input name="key" type="radio" value="genre" checked={key === "genre"} onChange={this.handleKeyChange} /> genre</label>
-          <label><input name="key" type="radio" value="audience" checked={key === "audience"} onChange={this.handleKeyChange} /> audience</label>
+          <EditableInput
+            type="radio"
+            name="title"
+            value="title"
+            label="title"
+            checked={key === "title"}
+            onChange={this.handleKeyChange}
+          />
+
+          <EditableInput
+            type="radio"
+            name="subject"
+            value="subject"
+            label="subject"
+            checked={key === "subject"}
+            onChange={this.handleKeyChange}
+          />
+
+          <EditableInput
+            type="radio"
+            name="author"
+            value="author"
+            label="author"
+            checked={key === "author"}
+            onChange={this.handleKeyChange}
+          />
+
+          <EditableInput
+            type="radio"
+            name="genre"
+            value="genre"
+            label="genre"
+            checked={key === "genre"}
+            onChange={this.handleKeyChange}
+          />
+
+          <EditableInput
+            type="radio"
+            name="audience"
+            value="audience"
+            label="audience"
+            checked={key === "audience"}
+            onChange={this.handleKeyChange}
+          />
         </div>
 
-        <select
-          onBlur={this.handleOpChange}
-          onChange={this.handleOpChange}
-          ref={this.opSelect}
-          value={op}
-        >
-          <option aria-selected={op === "contains"} value="contains">contains</option>
-          <option aria-selected={op === "eq"} value="eq">is</option>
-          <option aria-selected={op === "neq"} value="neq">is not</option>
-          <option aria-selected={op === "gt"} value="gt">is greater than</option>
-          <option aria-selected={op === "lt"} value="lt">is less than</option>
-        </select>
+        <div>
+          <EditableInput
+            elementType="select"
+            onBlur={this.handleOpChange}
+            onChange={this.handleOpChange}
+            ref={this.opSelect}
+            value={op}
+          >
+            <option aria-selected={op === "contains"} value="contains">contains</option>
+            <option aria-selected={op === "eq"} value="eq">is</option>
+            <option aria-selected={op === "neq"} value="neq">is not</option>
+            <option aria-selected={op === "gt"} value="gt">is greater than</option>
+            <option aria-selected={op === "lt"} value="lt">is less than</option>
+          </EditableInput>
 
-        {" "}
+          <EditableInput
+            elementType="input"
+            type="text"
+            name="filter_value"
+            onChange={this.handleValueChange}
+            optionalText={false}
+            ref={this.valueInput}
+            value={value}
+          />
 
-        <input
-          onChange={this.handleValueChange}
-          ref={this.valueInput}
-          size={50}
-          type="text"
-          value={value}
-        />
-
-        {" "}
-
-        <button
-          disabled={!(key && op && value.trim())}
-          onClick={this.handleAddClick}
-        >
-          Add filter
-        </button>
+          <Button
+            className="inverted inline"
+            callback={this.handleAddClick}
+            content="Add filter"
+            disabled={!(key && op && value.trim())}
+          />
+        </div>
       </div>
     );
   }
