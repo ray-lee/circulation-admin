@@ -47,7 +47,7 @@ export default ({
 
         {codeViewOpen &&
           <pre>
-            {JSON.stringify(query, (key, value) => (key === "id" ? undefined : value), 2)}
+            {JSON.stringify({ query }, (key, value) => (key === "id" ? undefined : value), 2)}
           </pre>
         }
       </div>
