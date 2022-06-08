@@ -17,7 +17,9 @@ function getOpSymbol(op) {
     case "eq": return "=";
     case "neq": return "≠";
     case "gt": return ">";
+    case "gte": return "≥";
     case "lt": return "<";
+    case "lte": return "≤";
   }
 
   return op;

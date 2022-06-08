@@ -25,8 +25,8 @@ export default class AdvancedSearchFilterInput extends React.Component<
     super(props);
 
     this.state = {
-      key: "title",
-      op: "contains",
+      key: "genre",
+      op: "eq",
       value: "",
     };
 
@@ -105,53 +105,42 @@ export default class AdvancedSearchFilterInput extends React.Component<
       value,
     } = this.state;
 
+    const fields = [
+      "genre",
+      "subject",
+      "publication date",
+      "language",
+      "audience",
+      "author",
+      "title",
+    ];
+
+    const operators = [
+      { name: "eq", label: "equals" },
+      { name: "contains", label: "contains" },
+      // { name: "neq", label: "does not equal" },
+      { name: "gt", label: "is greater than" },
+      { name: "gte", label: "is greater than or equals" },
+      { name: "lt", label: "is less than" },
+      { name: "lte", label: "is less than or equals" },
+    ];
+
     return (
       <div className="advanced-search-filter-input">
         <div>
-          <EditableInput
-            type="radio"
-            name="title"
-            value="title"
-            label="title"
-            checked={key === "title"}
-            onChange={this.handleKeyChange}
-          />
-
-          <EditableInput
-            type="radio"
-            name="subject"
-            value="subject"
-            label="subject"
-            checked={key === "subject"}
-            onChange={this.handleKeyChange}
-          />
-
-          <EditableInput
-            type="radio"
-            name="author"
-            value="author"
-            label="author"
-            checked={key === "author"}
-            onChange={this.handleKeyChange}
-          />
-
-          <EditableInput
-            type="radio"
-            name="genre"
-            value="genre"
-            label="genre"
-            checked={key === "genre"}
-            onChange={this.handleKeyChange}
-          />
-
-          <EditableInput
-            type="radio"
-            name="audience"
-            value="audience"
-            label="audience"
-            checked={key === "audience"}
-            onChange={this.handleKeyChange}
-          />
+          {
+            fields.map((field) => (
+              <EditableInput
+                checked={key === field}
+                key={field}
+                label={field}
+                name={field}
+                onChange={this.handleKeyChange}
+                type="radio"
+                value={field}
+              />
+            ))
+          }
         </div>
 
         <div>
@@ -162,11 +151,17 @@ export default class AdvancedSearchFilterInput extends React.Component<
             ref={this.opSelect}
             value={op}
           >
-            <option aria-selected={op === "contains"} value="contains">contains</option>
-            <option aria-selected={op === "eq"} value="eq">is</option>
-            <option aria-selected={op === "neq"} value="neq">is not</option>
-            <option aria-selected={op === "gt"} value="gt">is greater than</option>
-            <option aria-selected={op === "lt"} value="lt">is less than</option>
+            {
+              operators.map(({name, label}) => (
+                <option
+                aria-selected={op === name}
+                key={name}
+                value={name}
+                >
+                  {label}
+                </option>
+              ))
+            }
           </EditableInput>
 
           <EditableInput

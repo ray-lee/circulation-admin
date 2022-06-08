@@ -6,7 +6,7 @@ import AdvancedSearchFilterInput from "./AdvancedSearchFilterInput";
 import AdvancedSearchFilterView from "./AdvancedSearchFilterView";
 
 export interface AdvancedSearchProps {
-
+  defaultBoolean: string;
 }
 
 export interface AdvancedSearchState {
@@ -31,7 +31,15 @@ export default class AdvancedSearch extends React.Component<
   constructor(props: AdvancedSearchProps) {
     super(props);
 
-    this.state = {};
+    const id = newId();
+
+    this.state = {
+      // query: {
+      //   id,
+      //   [props.defaultBoolean]: [],
+      // },
+      // selectedQueryId: id,
+    };
 
     this.handleQueryAdd = this.handleQueryAdd.bind(this);
     this.handleQueryChange = this.handleQueryChange.bind(this);
@@ -133,7 +141,7 @@ export default class AdvancedSearch extends React.Component<
     query: AdvancedSearchQuery,
     targetId: string,
     newQuery: AdvancedSearchQuery,
-    preferredBool: string = "and",
+    preferredBool: string = this.props.defaultBoolean,
   ): AdvancedSearchQuery {
     if (query.and || query.or) {
       const bool = query.and ? "and" : "or";

@@ -163,9 +163,11 @@ export default class CustomListSearch extends React.Component<
     );
   }
 
-  renderAdvancedSearch() {
+  renderAdvancedSearch(defaultBoolean: string = "and") {
     return (
-      <AdvancedSearch />
+      <AdvancedSearch
+        defaultBoolean={defaultBoolean}
+      />
     );
   }
 
@@ -177,7 +179,22 @@ export default class CustomListSearch extends React.Component<
         buttonClass="left-align"
         buttonContent={
           <span>
-            Search
+            Update results
+            <SearchIcon />
+          </span>
+        }
+        className="search-titles"
+      />
+    );
+
+    const excludeForm = (
+      <Form
+        onSubmit={this.submitSearch}
+        content={[this.renderAdvancedSearch()]}
+        buttonClass="left-align"
+        buttonContent={
+          <span>
+            Update results
             <SearchIcon />
           </span>
         }
@@ -186,13 +203,22 @@ export default class CustomListSearch extends React.Component<
     );
 
     return (
-      <Panel
-        headerText="Search for titles"
-        id="search-titles"
-        openByDefault={true}
-        onEnter={this.submitSearch}
-        content={searchForm}
-      />
+      <>
+        <Panel
+          headerText="Search for titles"
+          id="search-titles"
+          openByDefault={true}
+          onEnter={this.submitSearch}
+          content={searchForm}
+        />
+        <Panel
+          headerText="Exclusions"
+          id="search-titles"
+          openByDefault={true}
+          onEnter={this.submitSearch}
+          content={excludeForm}
+        />
+      </>
     );
   }
 }
