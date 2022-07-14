@@ -38,7 +38,6 @@ export interface CustomListsStateProps {
   lists: CustomListData[];
   listDetails?: CollectionData;
   collections: AdminCollectionData[];
-  responseBody?: string;
   searchResults: CollectionData;
   fetchError?: FetchErrorData;
   isFetching: boolean;
@@ -65,6 +64,7 @@ export interface CustomListsDispatchProps {
   fetchLibraries: () => void;
   fetchLanguages: () => void;
   updateCustomListEditorProperty?: (name: string, value) => void;
+  toggleCustomListEditorCollection?: (id: number) => void;
   updateCustomListEditorSearchParam?: (name: string, value) => void;
   addCustomListEditorEntry?: (id: string) => void;
   addAllCustomListEditorEntries?: () => void;
@@ -181,6 +181,7 @@ export class CustomLists extends React.Component<
       search: this.props.executeCustomListEditorSearch,
       searchResults: this.props.searchResults,
       updateProperty: this.props.updateCustomListEditorProperty,
+      toggleCollection: this.props.toggleCustomListEditorCollection,
       updateSearchParam: this.props.updateCustomListEditorSearchParam,
       addEntry: this.props.addCustomListEditorEntry,
       addAllEntries: this.props.addAllCustomListEditorEntries,
@@ -190,7 +191,6 @@ export class CustomLists extends React.Component<
     const extraProps =
       this.props.editOrCreate === "create"
         ? {
-            responseBody: this.props.responseBody,
             startingTitle: this.props.startingTitle,
           }
         : {
@@ -425,8 +425,6 @@ function mapStateToProps(state, ownProps) {
     isFetchingMoreCustomListEntries:
       state.editor.customListDetails &&
       state.editor.customListDetails.isFetchingMoreEntries,
-    responseBody:
-      state.editor.customLists && state.editor.customLists.successMessage,
     fetchError:
       state.editor.customLists.fetchError ||
       state.editor.collections.fetchError,
@@ -480,6 +478,8 @@ function mapDispatchToProps(dispatch, ownProps) {
     fetchLanguages: () => dispatch(actions.fetchLanguages()),
     updateCustomListEditorProperty: (name: string, value) =>
       dispatch(actions.updateCustomListEditorProperty(name, value)),
+    toggleCustomListEditorCollection: (id: number) =>
+      dispatch(actions.toggleCustomListEditorCollection(id)),
     updateCustomListEditorSearchParam: (name: string, value) =>
       dispatch(actions.updateCustomListEditorSearchParam(name, value)),
     addCustomListEditorEntry: (id: string) =>

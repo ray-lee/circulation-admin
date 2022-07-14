@@ -266,6 +266,29 @@ const handleUpdateCustomListEditorProperty = validated((
   });
 });
 
+const handleToggleCustomListEditorCollection = validated((
+  state: CustomListEditorState,
+  action,
+): CustomListEditorState => {
+  const {
+    id,
+  } = action;
+
+  return produce(state, (draftState) => {
+    const {
+      collections,
+    } = draftState.properties.current;
+
+    const index = collections.indexOf(id);
+
+    if (index < 0) {
+      collections.push(id);
+    } else {
+      collections.splice(index, 1);
+    }
+  });
+});
+
 const handleUpdateCustomListEditorSearchParam = (
   state: CustomListEditorState,
   action,
@@ -457,6 +480,8 @@ export default (
       return handleCustomListDetailsMoreLoad(state, action);
     case ActionCreator.UPDATE_CUSTOM_LIST_EDITOR_PROPERTY:
       return handleUpdateCustomListEditorProperty(state, action);
+    case ActionCreator.TOGGLE_CUSTOM_LIST_EDITOR_COLLECTION:
+      return handleToggleCustomListEditorCollection(state, action);
     case ActionCreator.UPDATE_CUSTOM_LIST_EDITOR_SEARCH_PARAM:
       return handleUpdateCustomListEditorSearchParam(state, action);
     case ActionCreator.ADD_CUSTOM_LIST_EDITOR_ENTRY:

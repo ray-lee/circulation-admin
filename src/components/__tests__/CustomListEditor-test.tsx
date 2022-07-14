@@ -450,9 +450,9 @@ describe("CustomListEditor", () => {
       />,
       { context: fullContext, childContextTypes }
     );
-    (wrapper.instance() as CustomListEditor).updateEntries([
-      { id: "1234", title: "a", authors: [] },
-    ]);
+    // (wrapper.instance() as CustomListEditor).updateEntries([
+    //   { id: "1234", title: "a", authors: [] },
+    // ]);
     wrapper.update();
 
     cancelButton = wrapper.find(".save-or-cancel-list").find(Button).at(1);
@@ -464,7 +464,7 @@ describe("CustomListEditor", () => {
     expect(listEntriesReset.callCount).to.equal(3);
     cancelButton = wrapper.find(".save-or-cancel-list").find(Button).at(1);
 
-    (wrapper.instance() as CustomListEditor).updateEntries(listData.books);
+    // (wrapper.instance() as CustomListEditor).updateEntries(listData.books);
     wrapper.update();
 
     const buttons = wrapper.find(".save-or-cancel-list").find(Button);

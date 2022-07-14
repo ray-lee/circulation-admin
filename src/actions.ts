@@ -116,6 +116,7 @@ export default class ActionCreator extends BaseActionCreator {
   static readonly DELETE_CUSTOM_LIST = "DELETE_CUSTOM_LIST";
   static readonly OPEN_CUSTOM_LIST = "OPEN_CUSTOM_LIST";
   static readonly UPDATE_CUSTOM_LIST_EDITOR_PROPERTY = "UPDATE_CUSTOM_LIST_EDITOR_PROPERTY";
+  static readonly TOGGLE_CUSTOM_LIST_EDITOR_COLLECTION = "TOGGLE_CUSTOM_LIST_EDITOR_COLLECTION";
   static readonly UPDATE_CUSTOM_LIST_EDITOR_SEARCH_PARAM = "UPDATE_CUSTOM_LIST_EDITOR_SEARCH_PARAM";
   static readonly ADD_CUSTOM_LIST_EDITOR_ENTRY = "ADD_CUSTOM_LIST_EDITOR_ENTRY";
   static readonly ADD_ALL_CUSTOM_LIST_EDITOR_ENTRIES = "ADD_ALL_CUSTOM_LIST_EDITOR_ENTRIES";
@@ -877,6 +878,13 @@ export default class ActionCreator extends BaseActionCreator {
     };
   }
 
+  toggleCustomListEditorCollection(id: number) {
+    return {
+      type: ActionCreator.TOGGLE_CUSTOM_LIST_EDITOR_COLLECTION,
+      id,
+    };
+  }
+
   updateCustomListEditorSearchParam(name: string, value) {
     return {
       type: ActionCreator.UPDATE_CUSTOM_LIST_EDITOR_SEARCH_PARAM,
@@ -929,8 +937,18 @@ export default class ActionCreator extends BaseActionCreator {
         id,
       } = customListEditor;
 
-      return dispatch(
-        this.editCustomList(library, getCustomListEditorFormData(customListEditor), id)
+      return (
+        dispatch(this.editCustomList(library, getCustomListEditorFormData(customListEditor), id))
+          .then(() => {
+            const {
+              successMessage: savedListId,
+            } = getState().editor.customLists;
+
+            if ((id === null) && savedListId) {
+              console.log("navigating");
+              window.location.href = `/admin/web/lists/${library}/edit/${savedListId}`;
+            }
+          })
       );
     };
   }
