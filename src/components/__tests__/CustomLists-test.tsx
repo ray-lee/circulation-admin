@@ -16,8 +16,9 @@ describe("CustomLists", () => {
   let wrapper;
   let fetchCustomLists;
   let fetchCustomListDetails;
-  let editCustomList;
+  let saveCustomListEditor;
   let deleteCustomList;
+  let openCustomList;
   let search;
   let loadMoreSearchResults;
   let loadMoreEntries;
@@ -125,8 +126,9 @@ describe("CustomLists", () => {
   describe("on mount", () => {
     beforeEach(() => {
       fetchCustomLists = stub();
+      openCustomList = stub();
       fetchCustomListDetails = stub();
-      editCustomList = stub().returns(
+      saveCustomListEditor = stub().returns(
         new Promise<void>((resolve) => resolve())
       );
       deleteCustomList = stub().returns(
@@ -155,8 +157,9 @@ describe("CustomLists", () => {
           fetchLanguages={fetchLanguages}
           fetchCustomLists={fetchCustomLists}
           fetchCustomListDetails={fetchCustomListDetails}
-          editCustomList={editCustomList}
+          saveCustomListEditor={saveCustomListEditor}
           deleteCustomList={deleteCustomList}
+          openCustomList={openCustomList}
           search={search}
           loadMoreSearchResults={loadMoreSearchResults}
           loadMoreEntries={loadMoreEntries}
@@ -215,8 +218,9 @@ describe("CustomLists", () => {
           isFetchingMoreCustomListEntries={false}
           fetchCustomLists={fetchCustomLists}
           fetchCustomListDetails={fetchCustomListDetails}
-          editCustomList={editCustomList}
+          saveCustomListEditor={saveCustomListEditor}
           deleteCustomList={deleteCustomList}
+          openCustomList={openCustomList}
           search={search}
           loadMoreSearchResults={loadMoreSearchResults}
           loadMoreEntries={loadMoreEntries}
@@ -243,8 +247,9 @@ describe("CustomLists", () => {
           isFetchingMoreCustomListEntries={false}
           fetchCustomLists={fetchCustomLists}
           fetchCustomListDetails={fetchCustomListDetails}
-          editCustomList={editCustomList}
+          saveCustomListEditor={saveCustomListEditor}
           deleteCustomList={deleteCustomList}
+          openCustomList={openCustomList}
           search={search}
           loadMoreSearchResults={loadMoreSearchResults}
           loadMoreEntries={loadMoreEntries}
@@ -274,8 +279,9 @@ describe("CustomLists", () => {
           isFetchingMoreCustomListEntries={false}
           fetchCustomLists={fetchCustomLists}
           fetchCustomListDetails={fetchCustomListDetails}
-          editCustomList={editCustomList}
+          saveCustomListEditor={saveCustomListEditor}
           deleteCustomList={deleteCustomList}
+          openCustomList={openCustomList}
           search={search}
           loadMoreSearchResults={loadMoreSearchResults}
           loadMoreEntries={loadMoreEntries}
@@ -335,8 +341,9 @@ describe("CustomLists", () => {
           isFetchingMoreCustomListEntries={false}
           fetchCustomLists={fetchCustomLists}
           fetchCustomListDetails={fetchCustomListDetails}
-          editCustomList={editCustomList}
+          saveCustomListEditor={saveCustomListEditor}
           deleteCustomList={deleteCustomList}
+          openCustomList={openCustomList}
           search={search}
           loadMoreSearchResults={loadMoreSearchResults}
           loadMoreEntries={loadMoreEntries}
@@ -405,10 +412,10 @@ describe("CustomLists", () => {
 
     it("edits a list", () => {
       const testData = new (window as any).FormData();
-      (wrapper.instance() as CustomLists).editCustomList(testData, "id");
-      expect(editCustomList.callCount).to.equal(1);
-      expect(editCustomList.args[0][0]).to.equal(testData);
-      expect(editCustomList.args[0][1]).to.equal("id");
+      (wrapper.instance() as CustomLists).saveCustomListEditor();
+      expect(saveCustomListEditor.callCount).to.equal(1);
+      expect(saveCustomListEditor.args[0][0]).to.equal(testData);
+      expect(saveCustomListEditor.args[0][1]).to.equal("id");
     });
 
     it("renders create form", async () => {
@@ -434,9 +441,9 @@ describe("CustomLists", () => {
       expect(editor.props().languages).to.eql(languages);
 
       expect(fetchCustomLists.callCount).to.equal(1);
-      const editCustomListProp = editor.props().editCustomList;
-      await editCustomListProp();
-      expect(editCustomList.callCount).to.equal(1);
+      const saveCustomListEditorProp = editor.props().saveCustomListEditor;
+      await saveCustomListEditorProp();
+      expect(saveCustomListEditor.callCount).to.equal(1);
       expect(fetchCustomLists.callCount).to.equal(2);
 
       wrapper.setProps({ responseBody: "5" });
@@ -497,8 +504,9 @@ describe("CustomLists", () => {
           isFetchingMoreCustomListEntries={false}
           fetchCustomLists={fetchCustomLists}
           fetchCustomListDetails={fetchCustomListDetails}
-          editCustomList={editCustomList}
+          saveCustomListEditor={saveCustomListEditor}
           deleteCustomList={deleteCustomList}
+          openCustomList={openCustomList}
           search={search}
           loadMoreSearchResults={loadMoreSearchResults}
           loadMoreEntries={loadMoreEntries}
@@ -529,8 +537,9 @@ describe("CustomLists", () => {
     beforeEach(() => {
       confirmStub = stub(window, "confirm");
       fetchCustomLists = stub();
+      openCustomList = stub();
       fetchCustomListDetails = stub();
-      editCustomList = stub().returns(
+      saveCustomListEditor = stub().returns(
         new Promise<void>((resolve) => resolve())
       );
       deleteCustomList = stub().returns(
@@ -557,8 +566,9 @@ describe("CustomLists", () => {
           isFetchingMoreCustomListEntries={false}
           fetchCustomLists={fetchCustomLists}
           fetchCustomListDetails={fetchCustomListDetails}
-          editCustomList={editCustomList}
+          saveCustomListEditor={saveCustomListEditor}
           deleteCustomList={deleteCustomList}
+          openCustomList={openCustomList}
           search={search}
           loadMoreSearchResults={loadMoreSearchResults}
           loadMoreEntries={loadMoreEntries}

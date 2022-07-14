@@ -35,6 +35,7 @@ import { CollectionData } from "opds-web-client/lib/interfaces";
 import DataFetcher from "opds-web-client/lib/DataFetcher";
 import { RequestError, RequestRejector } from "opds-web-client/lib/DataFetcher";
 import BaseActionCreator from "opds-web-client/lib/actions";
+import { getCustomListEditorFormData, getCustomListEditorSearchUrl } from "./reducers/customListEditor";
 
 /** Create redux actions to be dispatched by connected components, mostly
     to make requests to the server. */
@@ -113,6 +114,14 @@ export default class ActionCreator extends BaseActionCreator {
   static readonly CUSTOM_LIST_DETAILS_MORE = "CUSTOM_LIST_DETAILS_MORE";
   static readonly EDIT_CUSTOM_LIST = "EDIT_CUSTOM_LIST";
   static readonly DELETE_CUSTOM_LIST = "DELETE_CUSTOM_LIST";
+  static readonly OPEN_CUSTOM_LIST = "OPEN_CUSTOM_LIST";
+  static readonly UPDATE_CUSTOM_LIST_EDITOR_PROPERTY = "UPDATE_CUSTOM_LIST_EDITOR_PROPERTY";
+  static readonly UPDATE_CUSTOM_LIST_EDITOR_SEARCH_PARAM = "UPDATE_CUSTOM_LIST_EDITOR_SEARCH_PARAM";
+  static readonly ADD_CUSTOM_LIST_EDITOR_ENTRY = "ADD_CUSTOM_LIST_EDITOR_ENTRY";
+  static readonly ADD_ALL_CUSTOM_LIST_EDITOR_ENTRIES = "ADD_ALL_CUSTOM_LIST_EDITOR_ENTRIES";
+  static readonly DELETE_CUSTOM_LIST_EDITOR_ENTRY = "DELETE_CUSTOM_LIST_EDITOR_ENTRY";
+  static readonly DELETE_ALL_CUSTOM_LIST_EDITOR_ENTRIES = "DELETE_ALL_CUSTOM_LIST_EDITOR_ENTRIES";
+  static readonly RESET_CUSTOM_LIST_EDITOR = "RESET_CUSTOM_LIST_EDITOR";
   static readonly LANES = "LANES";
   static readonly EDIT_LANE = "EDIT_LANE";
   static readonly DELETE_LANE = "DELETE_LANE";
@@ -850,6 +859,92 @@ export default class ActionCreator extends BaseActionCreator {
       null,
       "DELETE"
     ).bind(this);
+  }
+
+  openCustomList(listId: string) {
+    return (dispatch, getState) => dispatch({
+      type: ActionCreator.OPEN_CUSTOM_LIST,
+      id: listId,
+      data: getState().editor.customLists.data,
+    });
+  }
+
+  updateCustomListEditorProperty(name: string, value) {
+    return {
+      type: ActionCreator.UPDATE_CUSTOM_LIST_EDITOR_PROPERTY,
+      name,
+      value,
+    };
+  }
+
+  updateCustomListEditorSearchParam(name: string, value) {
+    return {
+      type: ActionCreator.UPDATE_CUSTOM_LIST_EDITOR_SEARCH_PARAM,
+      name,
+      value,
+    };
+  }
+
+  addCustomListEditorEntry(id: string) {
+    return (dispatch, getState) => dispatch({
+      type: ActionCreator.ADD_CUSTOM_LIST_EDITOR_ENTRY,
+      id,
+      data: getState().editor.collection.data,
+    });
+  }
+
+  addAllCustomListEditorEntries() {
+    return (dispatch, getState) => dispatch({
+      type: ActionCreator.ADD_ALL_CUSTOM_LIST_EDITOR_ENTRIES,
+      data: getState().editor.collection.data,
+    });
+  }
+
+  deleteCustomListEditorEntry(id: string) {
+    return {
+      type: ActionCreator.DELETE_CUSTOM_LIST_EDITOR_ENTRY,
+      id,
+    };
+  }
+
+  deleteAllCustomListEditorEntries() {
+    return {
+      type: ActionCreator.DELETE_ALL_CUSTOM_LIST_EDITOR_ENTRIES,
+    };
+  }
+
+  resetCustomListEditor() {
+    return {
+      type: ActionCreator.RESET_CUSTOM_LIST_EDITOR,
+    };
+  }
+
+  saveCustomListEditor(library: string) {
+    return (dispatch, getState) => {
+      const {
+        customListEditor
+      } = getState().editor;
+
+      const {
+        id,
+      } = customListEditor;
+
+      return dispatch(
+        this.editCustomList(library, getCustomListEditorFormData(customListEditor), id)
+      );
+    };
+  }
+
+  executeCustomListEditorSearch(library: string) {
+    return (dispatch, getState) => {
+      const {
+        customListEditor
+      } = getState().editor;
+
+      const url = getCustomListEditorSearchUrl(customListEditor, library);
+
+      return dispatch(this.fetchCollection(url));
+    };
   }
 
   fetchLanes(library: string) {

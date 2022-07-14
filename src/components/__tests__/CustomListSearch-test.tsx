@@ -16,6 +16,13 @@ describe("CustomListSearch", () => {
     },
   };
 
+  const searchParams = {
+    entryPoint: "all",
+    terms: "",
+    sort: "title",
+    language: "English",
+  };
+
   const languages = {
     eng: ["English"],
     spa: ["Spanish", "Castilian"],
@@ -25,6 +32,7 @@ describe("CustomListSearch", () => {
     search = stub();
     wrapper = mount(
       <CustomListSearch
+        searchParams={searchParams}
         search={search}
         library={library}
         languages={languages}
@@ -115,6 +123,7 @@ describe("CustomListSearch", () => {
     const search = stub();
     wrapper = mount(
       <CustomListSearch
+        searchParams={searchParams}
         startingTitle="test"
         search={search}
         library={library}

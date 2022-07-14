@@ -262,7 +262,7 @@ describe("CustomListEntriesEditor", () => {
         loadMoreEntries={loadMoreEntries}
         isFetchingMoreSearchResults={false}
         isFetchingMoreCustomListEntries={false}
-        entryCount={"2"}
+        entryCount={2}
       />,
       { context: fullContext, childContextTypes }
     );
@@ -294,7 +294,7 @@ describe("CustomListEntriesEditor", () => {
         isFetchingMoreSearchResults={false}
         isFetchingMoreCustomListEntries={false}
         opdsFeedUrl="opdsFeedUrl"
-        entryCount={"2"}
+        entryCount={2}
       />,
       { context: fullContext, childContextTypes }
     );
@@ -325,7 +325,7 @@ describe("CustomListEntriesEditor", () => {
         loadMoreEntries={loadMoreEntries}
         isFetchingMoreSearchResults={false}
         isFetchingMoreCustomListEntries={false}
-        entryCount={"2"}
+        entryCount={2}
       />,
       { context: fullContext, childContextTypes }
     );
@@ -362,7 +362,7 @@ describe("CustomListEntriesEditor", () => {
         loadMoreEntries={loadMoreEntries}
         isFetchingMoreSearchResults={false}
         isFetchingMoreCustomListEntries={false}
-        entryCount={"2"}
+        entryCount={2}
       />,
       { context: fullContext, childContextTypes }
     );
@@ -415,7 +415,7 @@ describe("CustomListEntriesEditor", () => {
         loadMoreEntries={loadMoreEntries}
         isFetchingMoreSearchResults={false}
         isFetchingMoreCustomListEntries={false}
-        entryCount={"2"}
+        entryCount={2}
       />,
       { context: fullContext, childContextTypes }
     );
@@ -443,7 +443,7 @@ describe("CustomListEntriesEditor", () => {
         loadMoreEntries={loadMoreEntries}
         isFetchingMoreSearchResults={false}
         isFetchingMoreCustomListEntries={false}
-        entryCount={"2"}
+        entryCount={2}
       />,
       { context: fullContext, childContextTypes }
     );
@@ -598,7 +598,7 @@ describe("CustomListEntriesEditor", () => {
         loadMoreEntries={loadMoreEntries}
         isFetchingMoreSearchResults={false}
         isFetchingMoreCustomListEntries={false}
-        entryCount={"2"}
+        entryCount={2}
       />,
       { context: fullContext, childContextTypes }
     );
@@ -643,7 +643,7 @@ describe("CustomListEntriesEditor", () => {
         loadMoreEntries={loadMoreEntries}
         isFetchingMoreSearchResults={false}
         isFetchingMoreCustomListEntries={false}
-        entryCount={"2"}
+        entryCount={2}
       />,
       { context: fullContext, childContextTypes }
     );
@@ -713,7 +713,7 @@ describe("CustomListEntriesEditor", () => {
         loadMoreEntries={loadMoreEntries}
         isFetchingMoreSearchResults={false}
         isFetchingMoreCustomListEntries={false}
-        entryCount={"2"}
+        entryCount={2}
       />,
       { context: fullContext, childContextTypes }
     );
@@ -765,7 +765,7 @@ describe("CustomListEntriesEditor", () => {
         loadMoreEntries={loadMoreEntries}
         isFetchingMoreSearchResults={false}
         isFetchingMoreCustomListEntries={false}
-        entryCount={"2"}
+        entryCount={2}
       />,
       { context: fullContext, childContextTypes }
     );
@@ -816,7 +816,7 @@ describe("CustomListEntriesEditor", () => {
         loadMoreEntries={loadMoreEntries}
         isFetchingMoreSearchResults={false}
         isFetchingMoreCustomListEntries={false}
-        entryCount={"2"}
+        entryCount={2}
       />,
       { context: fullContext, childContextTypes }
     );
@@ -990,7 +990,7 @@ describe("CustomListEntriesEditor", () => {
         loadMoreEntries={loadMoreEntries}
         isFetchingMoreSearchResults={false}
         isFetchingMoreCustomListEntries={false}
-        entryCount={"2"}
+        entryCount={2}
       />,
       { context: fullContext, childContextTypes }
     );
@@ -1034,7 +1034,7 @@ describe("CustomListEntriesEditor", () => {
         loadMoreEntries={loadMoreEntries}
         isFetchingMoreSearchResults={false}
         isFetchingMoreCustomListEntries={false}
-        entryCount={`${newEntriesData.length}`}
+        entryCount={newEntriesData.length}
       />,
       { context: fullContext, childContextTypes }
     );

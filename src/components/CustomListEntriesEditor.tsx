@@ -1,6 +1,6 @@
 import * as React from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { CollectionData, BookData } from "opds-web-client/lib/interfaces";
+import { CollectionData } from "opds-web-client/lib/interfaces";
 import LoadButton from "./LoadButton";
 import ApplyIcon from "./icons/ApplyIcon";
 import TrashIcon from "./icons/TrashIcon";
@@ -10,15 +10,9 @@ import { Button } from "library-simplified-reusable-components";
 import { AudioHeadphoneIcon, BookIcon } from "@nypl/dgx-svg-icons";
 import CatalogLink from "opds-web-client/lib/components/CatalogLink";
 import { getMedium, getMediumSVG } from "opds-web-client/lib/utils/book";
-import EditableInput from "./EditableInput";
-import { formatString } from "../utils/sharedFunctions";
+import { Entry, CustomListEditorEntriesData } from "../reducers/customListEditor";
 
-export interface Entry extends BookData {
-  medium?: string;
-}
-
-export interface CustomListEntriesEditorProps
-  extends React.Props<CustomListEntriesEditor> {
+export interface CustomListEntriesEditorProps {
   entries?: Entry[];
   searchResults?: CollectionData;
   loadMoreSearchResults: (url: string) => Promise<CollectionData>;
@@ -28,16 +22,20 @@ export interface CustomListEntriesEditorProps
   isFetchingMoreCustomListEntries: boolean;
   opdsFeedUrl?: string;
   nextPageUrl?: string;
-  entryCount?: string;
+  entryCount?: number;
   listId?: string | number;
+  addEntry?: (id: string) => void;
+  addAllEntries?: () => void;
+  deleteEntry?: (id: string) => void;
+  deleteAllEntries?: () => void;
 }
 
 export interface CustomListEntriesEditorState {
   draggingFrom: string | null;
-  entries: Entry[];
-  deleted: Entry[];
-  added: Entry[];
-  totalVisibleEntries?: number;
+  // entries: Entry[];
+  // deleted: Entry[];
+  // added: Entry[];
+  // totalVisibleEntries?: number;
 }
 
 /** Drag and drop interface for adding books from search results to a custom list. */
@@ -49,10 +47,10 @@ export default class CustomListEntriesEditor extends React.Component<
     super(props);
     this.state = {
       draggingFrom: null,
-      entries: this.props.entries || [],
-      deleted: [],
-      added: [],
-      totalVisibleEntries: this.props.entries ? this.props.entries.length : 0,
+      // entries: this.props.entries || [],
+      // deleted: [],
+      // added: [],
+      // totalVisibleEntries: this.props.entries ? this.props.entries.length : 0,
     };
 
     this.reset = this.reset.bind(this);
@@ -67,52 +65,67 @@ export default class CustomListEntriesEditor extends React.Component<
 
   render(): JSX.Element {
     const {
-      entries,
-      deleted,
-      added,
+      // entries,
+      // deleted,
+      // added,
       draggingFrom,
-      totalVisibleEntries,
+      // totalVisibleEntries,
     } = this.state;
+
     const {
+      entries: visibleEntries = [],
       searchResults,
       isFetchingMoreSearchResults,
       isFetchingMoreCustomListEntries,
       nextPageUrl,
       entryCount,
     } = this.props;
-    let entryListDisplay = "No books in this list";
-    const totalEntriesServer = parseInt(entryCount, 10);
-    let displayTotal;
-    let entriesCount;
-    let booksText;
 
-    if (totalVisibleEntries && totalEntriesServer) {
-      if (entries.length) {
-        entriesCount = totalEntriesServer - deleted.length + added.length;
-        displayTotal = `1 - ${entries.length} of ${entriesCount}`;
-        booksText = entriesCount === 1 ? "Book" : "Books";
-        entryListDisplay = `Displaying ${displayTotal} ${booksText}`;
-      } else if (totalEntriesServer - deleted.length !== 0) {
-        // The "delete all" button was clicked so there are no books
-        // in the visible list, but there could be more on the server.
-        entriesCount =
-          totalEntriesServer > deleted.length
-            ? totalEntriesServer - deleted.length
-            : 0;
-        displayTotal = `0 - 0 of ${entriesCount}`;
-        booksText = entriesCount === 1 ? "Book" : "Books";
-        entryListDisplay = `Displaying ${displayTotal} ${booksText}`;
-      }
-    } else {
-      // No existing entries in a list so it's a new list or all entries
-      // were recently deleted.
-      if (entries && entries.length) {
-        displayTotal = `1 - ${entries.length} of ${entries.length}`;
-        booksText = entries.length === 1 ? "Book" : "Books";
-        entryListDisplay = `Displaying ${displayTotal} ${booksText}`;
-      }
-    }
-    const resultsToDisplay = searchResults && this.searchResultsNotInEntries();
+    // const {
+    //   added = {},
+    //   removed = {},
+    // } = entriesDelta || {};
+
+    // const addedCount = Object.keys(added).length;
+    // const removedCount = Object.keys(removed).length;
+    const visibleEntryCount = visibleEntries.length;
+    // const totalSavedEntryCount = parseInt(totalSavedEntryCountString, 10);
+
+    const startNum = visibleEntryCount > 0 ? 1 : 0;
+    const endNum = visibleEntryCount;
+    // const totalCount = Math.max(totalSavedEntryCount + addedCount - removedCount, visibleEntryCount);
+    const booksText = entryCount === 1 ? "book" : "books";
+
+    const entryListDisplay = (entryCount > 0)
+      ?  `Displaying ${startNum} - ${endNum} of ${entryCount} ${booksText}`
+      :  "No books in this list";
+
+    // if (totalSavedEntryCount) {
+    //   if (visibleEntryCount) {
+    //     entriesCount = totalSavedEntryCount - removedCount + addedCount;
+    //     displayTotal = `1 - ${visibleEntryCount} of ${entriesCount}`;
+    //     booksText = entriesCount === 1 ? "Book" : "Books";
+    //     entryListDisplay = `Displaying ${displayTotal} ${booksText}`;
+    //   } else if (totalSavedEntryCount - removedCount !== 0) {
+    //     // The "delete all" button was clicked so there are no books
+    //     // in the visible list, but there could be more on the server.
+    //     entriesCount =
+    //     totalSavedEntryCount > removedCount
+    //         ? totalSavedEntryCount - removedCount
+    //         : 0;
+    //     displayTotal = `0 - 0 of ${entriesCount}`;
+    //     booksText = entriesCount === 1 ? "Book" : "Books";
+    //     entryListDisplay = `Displaying ${displayTotal} ${booksText}`;
+    //   }
+    // } else if (visibleEntryCount) {
+    //     displayTotal = `1 - ${visibleEntries.length} of ${visibleEntries.length}`;
+    //     booksText = visibleEntries.length === 1 ? "Book" : "Books";
+    //     entryListDisplay = `Displaying ${displayTotal} ${booksText}`;
+    //   }
+    // }
+
+    const resultsToDisplay = this.searchResultsNotInEntries(visibleEntries);
+
     return (
       <DragDropContext
         onDragStart={this.onDragStart}
@@ -211,7 +224,7 @@ export default class CustomListEntriesEditor extends React.Component<
           <div className="custom-list-entries">
             <div className="droppable-header">
               <h4>{entryListDisplay}</h4>
-              {entries && entries.length > 0 && (
+              {visibleEntries && visibleEntries.length > 0 && (
                 <div>
                   <span>Remove all currently visible items from list:</span>
                   <Button
@@ -242,8 +255,8 @@ export default class CustomListEntriesEditor extends React.Component<
                       : "droppable"
                   }
                 >
-                  {entries &&
-                    entries.map((book, i) => (
+                  {visibleEntries &&
+                    visibleEntries.map((book, i) => (
                       <Draggable key={book.id} draggableId={book.id}>
                         {(provided, snapshot) => (
                           <li>
@@ -302,49 +315,50 @@ export default class CustomListEntriesEditor extends React.Component<
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    let deleted = this.state.deleted;
-    let added = this.state.added;
-    const totalVisibleEntries = this.state.totalVisibleEntries;
+    // let deleted = this.state.deleted;
+    // let added = this.state.added;
+    // const totalVisibleEntries = this.state.totalVisibleEntries;
     // We need to reset the deleted and added entries if we are moving to a new list.
+
     if (this.props.listId !== nextProps.listId) {
-      deleted = [];
-      added = [];
+      // deleted = [];
+      // added = [];
       this.setState({
         draggingFrom: null,
-        entries: nextProps.entries,
-        deleted: deleted,
-        added: added,
-        totalVisibleEntries: nextProps.entries && nextProps.entries.length,
+        // entries: nextProps.entries,
+        // deleted: deleted,
+        // added: added,
+        // totalVisibleEntries: nextProps.entries && nextProps.entries.length,
       });
     }
 
     if (nextProps.entries && nextProps.entries !== this.props.entries) {
-      let newEntries;
+      // let newEntries;
       // If there are any deleted entries and the user loads more entries,
       // we want to remove them from the entire combined list.
-      if (this.state.deleted.length) {
-        this.state.deleted.forEach((deleteEntry) => {
-          nextProps.entries.forEach((entry, i) => {
-            if (entry.id === deleteEntry.id) {
-              nextProps.entries.splice(i, 1);
-            }
-          });
-        });
-      }
-      newEntries = nextProps.entries;
+      // if (this.state.deleted.length) {
+      //   this.state.deleted.forEach((deleteEntry) => {
+      //     nextProps.entries.forEach((entry, i) => {
+      //       if (entry.id === deleteEntry.id) {
+      //         nextProps.entries.splice(i, 1);
+      //       }
+      //     });
+      //   });
+      // }
+      // newEntries = nextProps.entries;
 
-      // If there are any added entries and the user loads more entries,
-      // we want to added them back to the entire combined list.
-      if (this.state.added.length) {
-        newEntries = this.state.added.concat(nextProps.entries);
-      }
+      // // If there are any added entries and the user loads more entries,
+      // // we want to added them back to the entire combined list.
+      // if (this.state.added.length) {
+      //   newEntries = this.state.added.concat(nextProps.entries);
+      // }
 
       this.setState({
         draggingFrom: null,
-        entries: newEntries,
-        deleted: deleted,
-        added: added,
-        totalVisibleEntries: newEntries.length,
+        // entries: newEntries,
+        // deleted: deleted,
+        // added: added,
+        // totalVisibleEntries: newEntries.length,
       });
 
       const droppableList = document.getElementById(
@@ -374,69 +388,68 @@ export default class CustomListEntriesEditor extends React.Component<
     );
   }
 
-  getMedium(book) {
-    return book.medium || book.raw["$"]["schema:additionalType"].value;
-  }
+  // getMedium(book) {
+  //   console.log("getMEdium")
+  //   return book.medium || book.raw["$"]["schema:additionalType"].value;
+  // }
 
-  getLanguage(book) {
-    return book.language || "";
-  }
+  // getLanguage(book) {
+  //   return book.language || "";
+  // }
 
-  getMediumSVG(medium) {
-    if (!medium) {
-      return null;
-    }
+  // getMediumSVG(medium) {
+  //   console.log("getMEdiumSVG")
 
-    const svgMediumTypes = {
-      "http://bib.schema.org/Audiobook": (
-        <AudioHeadphoneIcon ariaHidden className="draggable-item-icon" />
-      ),
-      "http://schema.org/EBook": (
-        <BookIcon ariaHidden className="draggable-item-icon" />
-      ),
-    };
+  //   if (!medium) {
+  //     return null;
+  //   }
 
-    return svgMediumTypes[medium] || null;
-  }
+  //   const svgMediumTypes = {
+  //     "http://bib.schema.org/Audiobook": (
+  //       <AudioHeadphoneIcon ariaHidden className="draggable-item-icon" />
+  //     ),
+  //     "http://schema.org/EBook": (
+  //       <BookIcon ariaHidden className="draggable-item-icon" />
+  //     ),
+  //   };
+
+  //   return svgMediumTypes[medium] || null;
+  // }
 
   getEntries(): Entry[] {
-    return this.state.entries || [];
+    return [];
   }
 
   getDeleted(): Entry[] {
-    return this.state.deleted;
+    return [];
   }
 
   reset() {
     this.setState({
       draggingFrom: null,
-      entries: this.props.entries,
-      deleted: [],
-      added: [],
-      totalVisibleEntries: this.props.entries ? this.props.entries.length : 0,
     });
     if (this.props.onUpdate) {
       this.props.onUpdate(this.props.entries || []);
     }
   }
 
-  searchResultsNotInEntries() {
-    const entryIds =
-      this.state.entries && this.state.entries.length
-        ? this.state.entries.map((entry) => entry.id)
-        : [];
-    const books =
-      this.props.searchResults.books && this.props.searchResults.books.length
-        ? this.props.searchResults.books.filter((book) => {
-            for (const entryId of entryIds) {
-              if (entryId === book.id) {
-                return false;
-              }
-            }
-            return true;
-          })
-        : [];
-    return books;
+  searchResultsNotInEntries(visibleEntries) {
+    const {
+      searchResults,
+    } = this.props;
+
+    if (!searchResults?.books?.length) {
+      return [];
+    }
+
+    // TODO: Memoize
+    const entryIds = visibleEntries.reduce((ids, entry) => {
+      ids[entry.id] = true;
+
+      return ids;
+    }, {});
+
+    return searchResults.books.filter((book) => !entryIds[book.id])
   }
 
   onDragStart(initial) {
@@ -447,9 +460,9 @@ export default class CustomListEntriesEditor extends React.Component<
 
     this.setState({
       draggingFrom: source.droppableId,
-      entries: this.state.entries,
-      deleted: this.state.deleted,
-      added: this.state.added,
+      // entries: this.state.entries,
+      // deleted: this.state.deleted,
+      // added: this.state.added,
     });
   }
 
@@ -474,9 +487,9 @@ export default class CustomListEntriesEditor extends React.Component<
     } else {
       this.setState({
         draggingFrom: null,
-        entries: this.state.entries,
-        deleted: this.state.deleted,
-        added: this.state.added,
+        // entries: this.state.entries,
+        // deleted: this.state.deleted,
+        // added: this.state.added,
       });
     }
 
@@ -484,148 +497,170 @@ export default class CustomListEntriesEditor extends React.Component<
   }
 
   add(id: string) {
-    const entries = this.state.entries ? this.state.entries.slice(0) : [];
-    let entry;
-    for (const result of this.props.searchResults.books) {
-      if (result.id === id) {
-        const medium = getMedium(result);
-        const language = this.getLanguage(result);
-        entry = {
-          id: result.id,
-          title: result.title,
-          authors: result.authors,
-          url: result.url,
-          medium,
-          language,
-        };
-        entries.unshift(entry);
-      }
-    }
+    // const entries = this.state.entries ? this.state.entries.slice(0) : [];
+    // let entry;
+    // for (const result of this.props.searchResults.books) {
+    //   if (result.id === id) {
+    //     const medium = getMedium(result);
+    //     const language = this.getLanguage(result);
+    //     entry = {
+    //       id: result.id,
+    //       title: result.title,
+    //       authors: result.authors,
+    //       url: result.url,
+    //       medium,
+    //       language,
+    //     };
+    //     entries.unshift(entry);
+    //   }
+    // }
 
-    const added = this.state.added.filter((entry) => entry.id !== id);
-    const inDeleted = this.state.deleted.filter((entry) => entry.id === id);
-    const deleted = this.state.deleted.filter((entry) => entry.id !== id);
-    const propEntries = this.props.entries
-      ? this.props.entries.filter((entry) => entry.id === id)
-      : [];
-    this.setState({
-      draggingFrom: null,
-      entries,
-      deleted,
-      added: propEntries.length ? added : added.concat([entry]),
-    });
-    if (this.props.onUpdate) {
-      this.props.onUpdate(entries);
+    // const added = this.state.added.filter((entry) => entry.id !== id);
+    // const inDeleted = this.state.deleted.filter((entry) => entry.id === id);
+    // const deleted = this.state.deleted.filter((entry) => entry.id !== id);
+    // const propEntries = this.props.entries
+    //   ? this.props.entries.filter((entry) => entry.id === id)
+    //   : [];
+    // this.setState({
+    //   draggingFrom: null,
+    //   entries,
+    //   deleted,
+    //   added: propEntries.length ? added : added.concat([entry]),
+    // });
+    // if (this.props.onUpdate) {
+    //   this.props.onUpdate(entries);
+    // }
+
+    const {
+      addEntry,
+    } = this.props;
+
+    if (addEntry) {
+      addEntry(id);
     }
   }
 
   delete(id: string) {
-    let entries = this.state.entries.slice(0);
-    const deleted = this.state.deleted.filter((entry) => entry.id !== id);
-    const deletedEntry = this.state.entries.filter((entry) => entry.id === id);
-    const added = this.state.added.filter((entry) => entry.id !== id);
-    const inAdded =
-      this.props.entries && this.props.entries.length
-        ? this.props.entries.filter((entry) => entry.id === id)
-        : [];
-    entries = entries.filter((entry) => entry.id !== id);
-    this.setState({
-      draggingFrom: null,
-      entries,
-      deleted: inAdded.length ? deleted.concat(deletedEntry) : deleted,
-      added,
-    });
-    if (this.props.onUpdate) {
-      this.props.onUpdate(entries);
+    // let entries = this.state.entries.slice(0);
+    // const deleted = this.state.deleted.filter((entry) => entry.id !== id);
+    // const deletedEntry = this.state.entries.filter((entry) => entry.id === id);
+    // const added = this.state.added.filter((entry) => entry.id !== id);
+    // const inAdded =
+    //   this.props.entries && this.props.entries.length
+    //     ? this.props.entries.filter((entry) => entry.id === id)
+    //     : [];
+    // entries = entries.filter((entry) => entry.id !== id);
+    // this.setState({
+    //   draggingFrom: null,
+    //   entries,
+    //   deleted: inAdded.length ? deleted.concat(deletedEntry) : deleted,
+    //   added,
+    // });
+    // if (this.props.onUpdate) {
+    //   this.props.onUpdate(entries);
+    // }
+    const {
+      deleteEntry,
+    } = this.props;
+
+    if (deleteEntry) {
+      deleteEntry(id);
     }
   }
 
   clearState() {
     this.setState({
       draggingFrom: null,
-      entries: this.state.entries,
-      deleted: [],
-      added: [],
-      totalVisibleEntries: this.state.entries ? this.state.entries.length : 0,
     });
-    if (this.props.onUpdate) {
-      this.props.onUpdate(this.state.entries);
-    }
   }
 
   addAll() {
-    const entries = [];
-    for (const result of this.searchResultsNotInEntries()) {
-      const medium = getMedium(result);
-      const language = this.getLanguage(result);
-      entries.push({
-        id: result.id,
-        title: result.title,
-        authors: result.authors,
-        url: result.url,
-        medium,
-        language,
-      });
-    }
-    const existingPropEntriesIds = this.props.entries
-      ? this.props.entries.map((entry) => entry.id)
-      : [];
-    const newEntriesIds = entries.map((entry) => entry.id);
-    const newlyAdded = entries.filter((book) => {
-      for (const newEntriesId of existingPropEntriesIds) {
-        if (newEntriesId === book.id) {
-          return false;
-        }
-      }
-      return true;
-    });
-    const deleted = this.state.deleted.filter((book) => {
-      for (const newEntriesId of newEntriesIds) {
-        if (newEntriesId === book.id) {
-          return false;
-        }
-      }
-      return true;
-    });
-    const added = this.state.added.concat(newlyAdded);
+    // const entries = [];
+    // for (const result of this.searchResultsNotInEntries()) {
+    //   const medium = getMedium(result);
+    //   const language = this.getLanguage(result);
+    //   entries.push({
+    //     id: result.id,
+    //     title: result.title,
+    //     authors: result.authors,
+    //     url: result.url,
+    //     medium,
+    //     language,
+    //   });
+    // }
+    // const existingPropEntriesIds = this.props.entries
+    //   ? this.props.entries.map((entry) => entry.id)
+    //   : [];
+    // const newEntriesIds = entries.map((entry) => entry.id);
+    // const newlyAdded = entries.filter((book) => {
+    //   for (const newEntriesId of existingPropEntriesIds) {
+    //     if (newEntriesId === book.id) {
+    //       return false;
+    //     }
+    //   }
+    //   return true;
+    // });
+    // const deleted = this.state.deleted.filter((book) => {
+    //   for (const newEntriesId of newEntriesIds) {
+    //     if (newEntriesId === book.id) {
+    //       return false;
+    //     }
+    //   }
+    //   return true;
+    // });
+    // const added = this.state.added.concat(newlyAdded);
 
-    for (const entry of this.state.entries) {
-      entries.push(entry);
-    }
+    // for (const entry of this.state.entries) {
+    //   entries.push(entry);
+    // }
 
-    this.setState({
-      draggingFrom: null,
-      entries,
-      deleted,
-      added,
-    });
-    if (this.props.onUpdate) {
-      this.props.onUpdate(entries);
+    // this.setState({
+    //   draggingFrom: null,
+    //   entries,
+    //   deleted,
+    //   added,
+    // });
+    // if (this.props.onUpdate) {
+    //   this.props.onUpdate(entries);
+    // }
+    const {
+      addAllEntries,
+    } = this.props;
+
+    if (addAllEntries) {
+      addAllEntries();
     }
   }
 
   deleteAll() {
-    const entries = this.state.entries.slice(0);
-    const propEntriesId = this.props.entries
-      ? this.props.entries.map((entry) => entry.id)
-      : [];
-    const newlyDeleted = entries.filter((book) => {
-      for (const propEntryId of propEntriesId) {
-        if (propEntryId === book.id) {
-          return true;
-        }
-      }
-      return false;
-    });
+    // const entries = this.state.entries.slice(0);
+    // const propEntriesId = this.props.entries
+    //   ? this.props.entries.map((entry) => entry.id)
+    //   : [];
+    // const newlyDeleted = entries.filter((book) => {
+    //   for (const propEntryId of propEntriesId) {
+    //     if (propEntryId === book.id) {
+    //       return true;
+    //     }
+    //   }
+    //   return false;
+    // });
 
-    this.setState({
-      draggingFrom: null,
-      entries: [],
-      deleted: this.state.deleted.concat(newlyDeleted),
-      added: [],
-    });
-    if (this.props.onUpdate) {
-      this.props.onUpdate([]);
+    // this.setState({
+    //   draggingFrom: null,
+    //   entries: [],
+    //   deleted: this.state.deleted.concat(newlyDeleted),
+    //   added: [],
+    // });
+    // if (this.props.onUpdate) {
+    //   this.props.onUpdate([]);
+    // }
+    const {
+      deleteAllEntries,
+    } = this.props;
+
+    if (deleteAllEntries) {
+      deleteAllEntries();
     }
   }
 

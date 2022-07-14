@@ -3,52 +3,115 @@ import EditableInput from "./EditableInput";
 import SearchIcon from "./icons/SearchIcon";
 import { LanguagesData, LibraryData } from "../interfaces";
 import { Button, Panel, Form } from "library-simplified-reusable-components";
+import { CustomListEditorSearchParams } from "../reducers/customListEditor"
 
 export interface CustomListSearchProps {
-  search: (searchTerms: string, sortBy: string, language: string) => void;
+  searchParams: CustomListEditorSearchParams;
+  updateSearchParam?: (name: string, value) => void;
+  search: () => void;
   entryPoints?: string[];
-  getEntryPointsElms?: (entryPoints: string[]) => {};
+  // getEntryPointsElms?: (entryPoints: string[]) => {};
   startingTitle?: string;
   library: LibraryData;
   languages: LanguagesData;
 }
 
-export interface CustomListSearchState {
-  sortBy?: string;
-}
+// export interface CustomListSearchState {
+//   sortBy?: string;
+// }
 
 export default class CustomListSearch extends React.Component<
-  CustomListSearchProps,
-  CustomListSearchState
+  CustomListSearchProps
+  // CustomListSearchState
 > {
   constructor(props: CustomListSearchProps) {
     super(props);
+
+    this.handleLanguageChange = this.handleLanguageChange.bind(this);
+    this.handleSortChange = this.handleSortChange.bind(this);
+    this.handleTermsChange = this.handleTermsChange.bind(this);
     this.submitSearch = this.submitSearch.bind(this);
-    this.sort = this.sort.bind(this);
-    this.state = { sortBy: null };
+    // this.state = { sortBy: null };
   }
 
   componentDidMount() {
     if (this.props.startingTitle) {
-      (this.refs[
-        "searchTerms"
-      ] as HTMLInputElement).value = this.props.startingTitle;
       this.submitSearch();
     }
   }
 
   submitSearch() {
-    const searchTerms = encodeURIComponent(
-      (this.refs["searchTerms"] as HTMLInputElement).value
-    );
-    const language = encodeURIComponent(
-      (this.refs["languages"] as HTMLSelectElement).value
-    );
-    this.props.search(searchTerms, this.state.sortBy, language);
+    const {
+      search,
+    } = this.props;
+
+    if (search) {
+      search();
+    }
   }
 
-  sort(sortBy: string) {
-    this.setState({ sortBy });
+  updateSearchParam(name, value) {
+    const {
+      updateSearchParam,
+    } = this.props;
+
+    if (updateSearchParam) {
+      updateSearchParam(name, value);
+    }
+  }
+
+  handleEntryPointChange(value) {
+    this.updateSearchParam("entryPoint", value);
+  }
+
+  handleLanguageChange(event) {
+    const {
+      value,
+    } = event.target;
+
+    this.updateSearchParam("language", value);
+  }
+
+  handleSortChange(value: string) {
+    this.updateSearchParam("sort", value);
+  }
+
+  handleTermsChange(event) {
+    const {
+      value,
+    } = event.target;
+
+    this.updateSearchParam("terms", value);
+  }
+
+  renderEntryPoint(entryPoint) {
+    const entryPointSelected = this.props.searchParams.entryPoint.toLowerCase();
+
+    return (
+      <EditableInput
+        key={entryPoint}
+        type="radio"
+        name="entry-points-selection"
+        checked={entryPoint.toLowerCase() === entryPointSelected}
+        label={entryPoint}
+        value={entryPoint}
+        onChange={() => this.handleEntryPointChange(entryPoint)}
+      />
+    );
+  }
+
+  renderEntryPoints(entryPoints) {
+    const entryPointsInputs = [];
+
+    if (!entryPoints.includes("All")) {
+      entryPointsInputs.push(this.renderEntryPoint("All"));
+    }
+
+    entryPoints.forEach((entryPoint) => {
+      entryPointsInputs.push(this.renderEntryPoint(entryPoint));
+    });
+
+    return entryPointsInputs;
   }
 
   renderSearchBox(): JSX.Element {
@@ -59,7 +122,7 @@ export default class CustomListSearch extends React.Component<
           <div className="entry-points">
             <span>Select the entry point to search for:</span>
             <div className="entry-points-selection">
-              {this.props.getEntryPointsElms(this.props.entryPoints)}
+              {this.renderEntryPoints(this.props.entryPoints)}
             </div>
           </div>
         ) : null}
@@ -69,6 +132,8 @@ export default class CustomListSearch extends React.Component<
           ref="searchTerms"
           type="text"
           placeholder="Enter a search term"
+          value={this.props.startingTitle || this.props.searchParams.terms}
+          onChange={this.handleTermsChange}
         />
       </fieldset>
     );
@@ -123,7 +188,11 @@ export default class CustomListSearch extends React.Component<
       <fieldset key="languages" className="well search-options">
         <legend>Filter by language:</legend>
         <section>
-          <select ref="languages">
+          <select
+            ref="languages"
+            value={this.props.searchParams.language}
+            onChange={this.handleLanguageChange}
+          >
             <option value="all" aria-selected={false}>
               All
             </option>
@@ -155,8 +224,8 @@ export default class CustomListSearch extends React.Component<
           value={v}
           label={k}
           ref={v}
-          checked={v === this.state.sortBy}
-          onChange={() => this.sort(v)}
+          checked={v === this.props.searchParams.sort}
+          onChange={() => this.handleSortChange(v)}
         />
       </li>
     );
