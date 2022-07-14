@@ -218,11 +218,11 @@ export class CustomLists extends React.Component<
      fetchCustomLists();
     }
 
-    if (editOrCreate === "edit") {
-      if (openCustomList) {
-        openCustomList(identifier);
-      }
+    if (openCustomList) {
+      openCustomList(identifier);
+    }
 
+    if (editOrCreate === "edit") {
       if (fetchCustomListDetails) {
         fetchCustomListDetails(identifier);
       }
@@ -264,14 +264,13 @@ export class CustomLists extends React.Component<
 
     // If we switched lists, fetch the details for the new list.
     if (
-      identifier &&
       identifier !== this.props.identifier
     ) {
       if (openCustomList) {
         openCustomList(identifier);
       }
 
-      if (fetchCustomListDetails) {
+      if (identifier && fetchCustomListDetails) {
         fetchCustomListDetails(identifier);
       }
     }

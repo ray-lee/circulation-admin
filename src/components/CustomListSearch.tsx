@@ -30,17 +30,23 @@ export default class CustomListSearch extends React.Component<
     this.handleLanguageChange = this.handleLanguageChange.bind(this);
     this.handleSortChange = this.handleSortChange.bind(this);
     this.handleTermsChange = this.handleTermsChange.bind(this);
-    this.submitSearch = this.submitSearch.bind(this);
+
+    this.search = this.search.bind(this);
     // this.state = { sortBy: null };
   }
 
   componentDidMount() {
-    if (this.props.startingTitle) {
-      this.submitSearch();
+    const {
+      startingTitle,
+    } = this.props;
+
+    if (startingTitle) {
+      this.updateSearchParam("terms", startingTitle);
+      this.search();
     }
   }
 
-  submitSearch() {
+  search() {
     const {
       search,
     } = this.props;
@@ -234,7 +240,7 @@ export default class CustomListSearch extends React.Component<
   render(): JSX.Element {
     const searchForm = (
       <Form
-        onSubmit={this.submitSearch}
+        onSubmit={this.search}
         content={[this.renderSearchBox(), this.renderSearchOptions()]}
         buttonClass="left-align"
         buttonContent={
@@ -252,7 +258,7 @@ export default class CustomListSearch extends React.Component<
         headerText="Search for titles"
         id="search-titles"
         openByDefault={true}
-        onEnter={this.submitSearch}
+        onEnter={this.search}
         content={searchForm}
       />
     );

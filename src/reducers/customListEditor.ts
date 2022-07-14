@@ -47,11 +47,11 @@ const initialState: CustomListEditorState = {
   id: null,
   properties: {
     baseline: {
-      name: null,
+      name: "",
       collections: [],
     },
     current: {
-      name: null,
+      name: "",
       collections: [],
     }
   },
@@ -145,7 +145,7 @@ const initialStateForList = (
   let customList = null;
   let error = null;
 
-  if (data) {
+  if (data && (id !== null)) {
     customList = data.custom_lists.find((list) => list.id === id);
 
     if (!customList) {
@@ -180,7 +180,7 @@ const handleCustomListOpen = (
     data,
   } = action;
 
-  return initialStateForList(parseInt(id, 10), data);
+  return initialStateForList(id ? parseInt(id, 10) : null, data);
 };
 
 const handleCustomListsLoad = (

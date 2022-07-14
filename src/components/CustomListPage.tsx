@@ -56,7 +56,7 @@ export default class CustomListPage extends React.Component<
           identifier={this.props.params.identifier}
           store={this.context.editorStore}
           csrfToken={this.context.csrfToken}
-          startingTitle={startingTitle}
+          startingTitle="Baseball"
         />
         <Footer />
       </div>
