@@ -17,12 +17,12 @@ import {
   LanesData,
   LanguagesData,
 } from "../interfaces";
+import Admin from "../models/Admin";
 import {
   CustomListEditorProperties,
   CustomListEditorEntriesData,
   CustomListEditorSearchParams,
 } from "../reducers/customListEditor";
-import Admin from "../models/Admin";
 import { FetchErrorData, CollectionData } from "opds-web-client/lib/interfaces";
 import CustomListEditor from "./CustomListEditor";
 import LoadingIndicator from "opds-web-client/lib/components/LoadingIndicator";
@@ -52,16 +52,10 @@ export interface CustomListsDispatchProps {
   fetchLanes: () => Promise<LanesData>;
   fetchCustomLists: () => Promise<CustomListsData>;
   fetchCustomListDetails: (listId: string) => Promise<CollectionData>;
+  openCustomListEditor: (listId: string) => void;
   saveCustomListEditor: () => void;
   resetCustomListEditor?: () => void;
   executeCustomListEditorSearch?: () => void;
-  deleteCustomList: (listId: string) => Promise<void>;
-  openCustomList: (listId: string) => void;
-  loadMoreSearchResults: () => void;
-  loadMoreEntries: () => void;
-  fetchCollections: () => Promise<CollectionsData>;
-  fetchLibraries: () => void;
-  fetchLanguages: () => void;
   updateCustomListEditorProperty?: (name: string, value) => void;
   toggleCustomListEditorCollection?: (id: number) => void;
   updateCustomListEditorSearchParam?: (name: string, value) => void;
@@ -69,6 +63,12 @@ export interface CustomListsDispatchProps {
   addAllCustomListEditorEntries?: () => void;
   deleteCustomListEditorEntry?: (id: string) => void;
   deleteAllCustomListEditorEntries?: () => void;
+  deleteCustomList: (listId: string) => Promise<void>;
+  loadMoreSearchResults: () => void;
+  loadMoreEntries: () => void;
+  fetchCollections: () => Promise<CollectionsData>;
+  fetchLibraries: () => void;
+  fetchLanguages: () => void;
 }
 
 export interface CustomListsOwnProps {
@@ -179,12 +179,9 @@ export class CustomLists extends React.Component<
     };
     const extraProps =
       this.props.editOrCreate === "create"
-        ? {
-            startingTitle: this.props.startingTitle,
-          }
-        : {
-            listId: this.props.identifier,
-          };
+        ? { startingTitle: this.props.startingTitle }
+        : { listId: this.props.identifier };
+
     return <CustomListEditor {...{ ...editorProps, ...extraProps }} />;
   }
 
@@ -197,29 +194,19 @@ export class CustomLists extends React.Component<
       fetchLibraries,
       fetchLanguages,
       identifier,
-      openCustomList,
+      openCustomListEditor,
     } = this.props;
 
-    if (fetchCustomLists) {
-      fetchCustomLists();
-    }
-
-    if (openCustomList) {
-      openCustomList(identifier);
-    }
+    fetchCustomLists?.();
+    openCustomListEditor?.(identifier);
 
     if (editOrCreate === "edit") {
-      if (fetchCustomListDetails) {
-        fetchCustomListDetails(identifier);
-      }
+      fetchCustomListDetails?.(identifier);
     }
 
-    if (fetchCollections) {
-      fetchCollections();
-    }
-
-    fetchLibraries();
-    fetchLanguages();
+    fetchCollections?.();
+    fetchLibraries?.();
+    fetchLanguages?.();
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
@@ -238,16 +225,18 @@ export class CustomLists extends React.Component<
       }
     }
 
-    const { identifier, fetchCustomListDetails, openCustomList } = nextProps;
+    const {
+      identifier,
+      fetchCustomListDetails,
+      openCustomListEditor,
+    } = nextProps;
 
     // If we switched lists, fetch the details for the new list.
     if (identifier !== this.props.identifier) {
-      if (openCustomList) {
-        openCustomList(identifier);
-      }
+      openCustomListEditor?.(identifier);
 
-      if (identifier && fetchCustomListDetails) {
-        fetchCustomListDetails(identifier);
+      if (identifier) {
+        fetchCustomListDetails?.(identifier);
       }
     }
   }
@@ -436,8 +425,8 @@ function mapDispatchToProps(dispatch, ownProps) {
       dispatch(actions.fetchMoreCustomListEditorSearchResults()),
     deleteCustomList: (listId: string) =>
       dispatch(actions.deleteCustomList(ownProps.library, listId)),
-    openCustomList: (listId: string) =>
-      dispatch(actions.openCustomList(listId)),
+    openCustomListEditor: (listId: string) =>
+      dispatch(actions.openCustomListEditor(listId)),
     loadMoreEntries: () => dispatch(actions.fetchMoreCustomListEntries()),
     fetchCollections: () => dispatch(actions.fetchCollections()),
     fetchLibraries: () => dispatch(actions.fetchLibraries()),

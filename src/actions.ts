@@ -117,7 +117,7 @@ export default class ActionCreator extends BaseActionCreator {
   static readonly CUSTOM_LIST_DETAILS_MORE = "CUSTOM_LIST_DETAILS_MORE";
   static readonly EDIT_CUSTOM_LIST = "EDIT_CUSTOM_LIST";
   static readonly DELETE_CUSTOM_LIST = "DELETE_CUSTOM_LIST";
-  static readonly OPEN_CUSTOM_LIST = "OPEN_CUSTOM_LIST";
+  static readonly OPEN_CUSTOM_LIST_EDITOR = "OPEN_CUSTOM_LIST_EDITOR";
   static readonly UPDATE_CUSTOM_LIST_EDITOR_PROPERTY =
     "UPDATE_CUSTOM_LIST_EDITOR_PROPERTY";
   static readonly TOGGLE_CUSTOM_LIST_EDITOR_COLLECTION =
@@ -882,10 +882,10 @@ export default class ActionCreator extends BaseActionCreator {
     ).bind(this);
   }
 
-  openCustomList(listId: string) {
+  openCustomListEditor(listId: string) {
     return (dispatch, getState) =>
       dispatch({
-        type: ActionCreator.OPEN_CUSTOM_LIST,
+        type: ActionCreator.OPEN_CUSTOM_LIST_EDITOR,
         id: listId,
         data: getState().editor.customLists.data,
       });

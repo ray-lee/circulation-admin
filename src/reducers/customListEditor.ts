@@ -148,7 +148,7 @@ const initialStateForList = (id: number, data): CustomListEditorState => {
   });
 };
 
-const handleCustomListOpen = (
+const handleCustomListEditorOpen = (
   state: CustomListEditorState,
   action
 ): CustomListEditorState => {
@@ -382,8 +382,8 @@ export default (
   action
 ): CustomListEditorState => {
   switch (action.type) {
-    case ActionCreator.OPEN_CUSTOM_LIST:
-      return handleCustomListOpen(state, action);
+    case ActionCreator.OPEN_CUSTOM_LIST_EDITOR:
+      return handleCustomListEditorOpen(state, action);
     case `${ActionCreator.CUSTOM_LISTS}_${ActionCreator.LOAD}`:
       return handleCustomListsLoad(state, action);
     case `${ActionCreator.CUSTOM_LIST_DETAILS}_${ActionCreator.LOAD}`:
