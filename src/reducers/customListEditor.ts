@@ -22,8 +22,8 @@ export interface CustomListEditorProperties {
 }
 
 export interface CustomListEditorTrackedProperties {
-  baseline: CustomListEditorProperties,
-  current: CustomListEditorProperties,
+  baseline: CustomListEditorProperties;
+  current: CustomListEditorProperties;
 }
 
 export interface CustomListEditorSearchParams {
@@ -38,8 +38,8 @@ export interface CustomListEditorState {
   properties: CustomListEditorTrackedProperties;
   searchParams: CustomListEditorSearchParams;
   entries: CustomListEditorEntriesData;
-  isValid: boolean,
-  isModified: boolean,
+  isValid: boolean;
+  isModified: boolean;
   error: string;
 }
 
@@ -53,7 +53,7 @@ const initialState: CustomListEditorState = {
     current: {
       name: "",
       collections: [],
-    }
+    },
   },
   searchParams: {
     entryPoint: "All",
@@ -75,49 +75,29 @@ const initialState: CustomListEditorState = {
 };
 
 const isValid = (state: CustomListEditorState): boolean => {
-  const {
-    properties,
-    entries,
-  } = state;
+  const { properties, entries } = state;
 
-  const {
-    name,
-    collections,
-  } = properties.current;
+  const { name, collections } = properties.current;
 
-  const {
-    currentTotalCount,
-  } = entries;
+  const { currentTotalCount } = entries;
 
-  return (!!name && (collections.length > 0 || currentTotalCount > 0));
-}
+  return !!name && (collections.length > 0 || currentTotalCount > 0);
+};
 
 const isModified = (state: CustomListEditorState): boolean => {
-  const {
-    properties,
-    entries,
-  } = state;
+  const { properties, entries } = state;
 
-  const {
-    added,
-    removed,
-  } = entries;
+  const { added, removed } = entries;
 
-  if (
-    (Object.keys(added).length > 0) ||
-    (Object.keys(removed).length > 0)
-  ) {
+  if (Object.keys(added).length > 0 || Object.keys(removed).length > 0) {
     return true;
   }
 
-  const {
-    baseline,
-    current,
-  } = properties;
+  const { baseline, current } = properties;
 
   if (
-    (baseline.name !== current.name) ||
-    (baseline.collections.length !== current.collections.length) ||
+    baseline.name !== current.name ||
+    baseline.collections.length !== current.collections.length ||
     !baseline.collections.every((id) => current.collections.includes(id))
   ) {
     return true;
@@ -138,14 +118,11 @@ const validateAndCheckModified = (
 const validated = (handler) => (state, action) =>
   validateAndCheckModified(handler(state, action));
 
-const initialStateForList = (
-  id: number,
-  data
-): CustomListEditorState => {
+const initialStateForList = (id: number, data): CustomListEditorState => {
   let customList = null;
   let error = null;
 
-  if (data && (id !== null)) {
+  if (data && id !== null) {
     customList = data.custom_lists.find((list) => list.id === id);
 
     if (!customList) {
@@ -169,134 +146,107 @@ const initialStateForList = (
 
     draftState.error = error;
   });
-}
+};
 
 const handleCustomListOpen = (
   state: CustomListEditorState,
-  action,
+  action
 ): CustomListEditorState => {
-  const {
-    id,
-    data,
-  } = action;
+  const { id, data } = action;
 
   return initialStateForList(id ? parseInt(id, 10) : null, data);
 };
 
 const handleCustomListsLoad = (
   state: CustomListEditorState,
-  action,
+  action
 ): CustomListEditorState => {
-  const {
-    id,
-  } = state;
+  const { id } = state;
 
-  const {
-    data,
-  } = action;
+  const { data } = action;
 
   return initialStateForList(id, data);
 };
 
-const applyEntriesDelta = (
-  entries: CustomListEditorEntriesData
-) => {
-  const {
-    baseline,
-    baselineTotalCount,
-    added,
-    removed,
-  } = entries;
+const applyEntriesDelta = (entries: CustomListEditorEntriesData) => {
+  const { baseline, baselineTotalCount, added, removed } = entries;
 
   const addedEntries = Object.values(added);
 
   // Show the most recently added entries at the top.
   addedEntries.reverse();
 
-  entries.current = addedEntries.concat(baseline.filter((entry) => !removed[entry.id]));
+  entries.current = addedEntries.concat(
+    baseline.filter((entry) => !removed[entry.id])
+  );
 
   const addedCount = addedEntries.length;
   const removedCount = Object.keys(removed).length;
   const currentCount = entries.current.length;
 
-  entries.currentTotalCount = Math.max(baselineTotalCount + addedCount - removedCount, currentCount);
-}
+  entries.currentTotalCount = Math.max(
+    baselineTotalCount + addedCount - removedCount,
+    currentCount
+  );
+};
 
-const handleCustomListDetailsLoad = validated((
-  state: CustomListEditorState,
-  action,
-): CustomListEditorState => {
-  return produce(state, (draftState) => {
-    const {
-      entries,
-    } = draftState;
+const handleCustomListDetailsLoad = validated(
+  (state: CustomListEditorState, action): CustomListEditorState => {
+    return produce(state, (draftState) => {
+      const { entries } = draftState;
 
-    entries.baseline = action.data.books;
+      entries.baseline = action.data.books;
 
-    applyEntriesDelta(entries);
-  });
-});
+      applyEntriesDelta(entries);
+    });
+  }
+);
 
-const handleCustomListDetailsMoreLoad = validated((
-  state: CustomListEditorState,
-  action,
-): CustomListEditorState => {
-  return produce(state, (draftState) => {
-    const {
-      entries,
-    } = draftState;
+const handleCustomListDetailsMoreLoad = validated(
+  (state: CustomListEditorState, action): CustomListEditorState => {
+    return produce(state, (draftState) => {
+      const { entries } = draftState;
 
-    entries.baseline = entries.baseline.concat(action.data.books);
+      entries.baseline = entries.baseline.concat(action.data.books);
 
-    applyEntriesDelta(entries);
-  });
-});
+      applyEntriesDelta(entries);
+    });
+  }
+);
 
-const handleUpdateCustomListEditorProperty = validated((
-  state: CustomListEditorState,
-  action,
-): CustomListEditorState => {
-  const {
-    name,
-    value,
-  } = action;
+const handleUpdateCustomListEditorProperty = validated(
+  (state: CustomListEditorState, action): CustomListEditorState => {
+    const { name, value } = action;
 
-  return produce(state, (draftState) => {
-    draftState.properties.current[name] = value;
-  });
-});
+    return produce(state, (draftState) => {
+      draftState.properties.current[name] = value;
+    });
+  }
+);
 
-const handleToggleCustomListEditorCollection = validated((
-  state: CustomListEditorState,
-  action,
-): CustomListEditorState => {
-  const {
-    id,
-  } = action;
+const handleToggleCustomListEditorCollection = validated(
+  (state: CustomListEditorState, action): CustomListEditorState => {
+    const { id } = action;
 
-  return produce(state, (draftState) => {
-    const {
-      collections,
-    } = draftState.properties.current;
+    return produce(state, (draftState) => {
+      const { collections } = draftState.properties.current;
 
-    const index = collections.indexOf(id);
+      const index = collections.indexOf(id);
 
-    if (index < 0) {
-      collections.push(id);
-    } else {
-      collections.splice(index, 1);
-    }
-  });
-});
+      if (index < 0) {
+        collections.push(id);
+      } else {
+        collections.splice(index, 1);
+      }
+    });
+  }
+);
 
 const handleUpdateCustomListEditorSearchParam = (
   state: CustomListEditorState,
-  action,
+  action
 ): CustomListEditorState => {
-  const {
-    name,
-    value,
-  } = action;
+  const { name, value } = action;
 
   return produce(state, (draftState) => {
     draftState.searchParams[name] = value;
@@ -312,162 +262,124 @@ const bookToEntry = (book) => ({
   language: book.language || "",
 });
 
-const handleAddCustomListEditorEntry = validated((
-  state: CustomListEditorState,
-  action,
-): CustomListEditorState => {
-  const {
-    id,
-    data,
-  } = action;
+const handleAddCustomListEditorEntry = validated(
+  (state: CustomListEditorState, action): CustomListEditorState => {
+    const { id, data } = action;
 
-  return produce(state, (draftState) => {
-    const {
-      entries,
-    } = draftState;
+    return produce(state, (draftState) => {
+      const { entries } = draftState;
 
-    const {
-      baseline,
-      added,
-      removed,
-    } = entries;
+      const { baseline, added, removed } = entries;
 
-    const isInList: boolean = !!baseline.find((book) => book.id === id);
+      const isInList: boolean = !!baseline.find((book) => book.id === id);
 
-    if (!isInList) {
-      const bookToAdd = data.books.find((book) => book.id === id);
-      const isAdded = !!added[id]
+      if (!isInList) {
+        const bookToAdd = data.books.find((book) => book.id === id);
+        const isAdded = !!added[id];
 
-      if (bookToAdd && !isAdded) {
-        added[id] = bookToEntry(bookToAdd);
+        if (bookToAdd && !isAdded) {
+          added[id] = bookToEntry(bookToAdd);
+        }
       }
-    }
 
-    delete removed[id];
+      delete removed[id];
 
-    applyEntriesDelta(entries);
-  });
-});
-
-const handleAddAllCustomListEditorEntries = validated((
-  state: CustomListEditorState,
-  action,
-): CustomListEditorState => {
-  const {
-    books,
-  } = action.data;
-
-  // Add the books in reverse order, so that they appear in the entry list in the same order as
-  // they appear in the search results.
-  books.reverse();
-
-  return produce(state, (draftState) => {
-    const {
-      entries,
-    } = draftState;
-
-    const {
-      baseline,
-      added,
-      removed,
-    } = entries;
-
-    const listIds = baseline.reduce((ids, book) => {
-      ids[book.id] = true;
-
-      return ids;
-    }, {});
-
-    books
-      .filter((book) => !listIds[book.id] && !added[book.id])
-      .map((book) => bookToEntry(book))
-      .forEach((entry) => added[entry.id] = entry)
-
-    books.forEach((book) => {
-      delete removed[book.id];
+      applyEntriesDelta(entries);
     });
+  }
+);
 
-    applyEntriesDelta(entries);
-  });
-});
+const handleAddAllCustomListEditorEntries = validated(
+  (state: CustomListEditorState, action): CustomListEditorState => {
+    const { books } = action.data;
 
-const handleDeleteCustomListEditorEntry = validated((
-  state: CustomListEditorState,
-  action,
-): CustomListEditorState => {
-  const {
-    id,
-  } = action;
+    // Add the books in reverse order, so that they appear in the entry list in the same order as
+    // they appear in the search results.
+    books.reverse();
 
-  return produce(state, (draftState) => {
-    const {
-      entries,
-    } = draftState;
+    return produce(state, (draftState) => {
+      const { entries } = draftState;
 
-    const {
-      added,
-      removed,
-    } = entries;
+      const { baseline, added, removed } = entries;
 
-    if (added[id]) {
-      delete added[id];
-    } else {
-      removed[id] = true;
-    }
+      const listIds = baseline.reduce((ids, book) => {
+        ids[book.id] = true;
 
-    applyEntriesDelta(entries);
-  });
-});
+        return ids;
+      }, {});
 
-const handleDeleteAllCustomListEditorEntries = validated((
-  state: CustomListEditorState,
-  action,
-): CustomListEditorState => {
-  return produce(state, (draftState) => {
-    const {
-      entries,
-    } = draftState;
+      books
+        .filter((book) => !listIds[book.id] && !added[book.id])
+        .map((book) => bookToEntry(book))
+        .forEach((entry) => (added[entry.id] = entry));
 
-    const {
-      baseline,
-      added,
-      removed,
-    } = entries;
+      books.forEach((book) => {
+        delete removed[book.id];
+      });
 
-    baseline.forEach((book) => {
-      if (!added[book.id]) {
-        removed[book.id] = true;
+      applyEntriesDelta(entries);
+    });
+  }
+);
+
+const handleDeleteCustomListEditorEntry = validated(
+  (state: CustomListEditorState, action): CustomListEditorState => {
+    const { id } = action;
+
+    return produce(state, (draftState) => {
+      const { entries } = draftState;
+
+      const { added, removed } = entries;
+
+      if (added[id]) {
+        delete added[id];
+      } else {
+        removed[id] = true;
       }
+
+      applyEntriesDelta(entries);
     });
+  }
+);
 
-    entries.added = {};
+const handleDeleteAllCustomListEditorEntries = validated(
+  (state: CustomListEditorState): CustomListEditorState => {
+    return produce(state, (draftState) => {
+      const { entries } = draftState;
 
-    applyEntriesDelta(entries);
-  });
-});
+      const { baseline, added, removed } = entries;
 
-const handleResetCustomListEditor = validated((
-  state: CustomListEditorState,
-  action,
-): CustomListEditorState => {
-  return produce(state, (draftState) => {
-    const {
-      properties,
-      entries,
-    } = draftState;
+      baseline.forEach((book) => {
+        if (!added[book.id]) {
+          removed[book.id] = true;
+        }
+      });
 
-    properties.current = properties.baseline;
+      entries.added = {};
 
-    entries.added = {};
-    entries.removed = {};
+      applyEntriesDelta(entries);
+    });
+  }
+);
 
-    applyEntriesDelta(entries);
-  });
-});
+const handleResetCustomListEditor = validated(
+  (state: CustomListEditorState): CustomListEditorState => {
+    return produce(state, (draftState) => {
+      const { properties, entries } = draftState;
+
+      properties.current = properties.baseline;
+
+      entries.added = {};
+      entries.removed = {};
+
+      applyEntriesDelta(entries);
+    });
+  }
+);
 
 export default (
   state: CustomListEditorState = initialState,
-  action,
+  action
 ): CustomListEditorState => {
   switch (action.type) {
     case ActionCreator.OPEN_CUSTOM_LIST:
@@ -488,7 +400,7 @@ export default (
       return handleAddCustomListEditorEntry(state, action);
     case ActionCreator.ADD_ALL_CUSTOM_LIST_EDITOR_ENTRIES:
       return handleAddAllCustomListEditorEntries(state, action);
-     case ActionCreator.DELETE_CUSTOM_LIST_EDITOR_ENTRY:
+    case ActionCreator.DELETE_CUSTOM_LIST_EDITOR_ENTRY:
       return handleDeleteCustomListEditorEntry(state, action);
     case ActionCreator.DELETE_ALL_CUSTOM_LIST_EDITOR_ENTRIES:
       return handleDeleteAllCustomListEditorEntries(state, action);
@@ -499,32 +411,23 @@ export default (
   }
 };
 
-export const getCustomListEditorFormData = (state: CustomListEditorState): FormData => {
+export const getCustomListEditorFormData = (
+  state: CustomListEditorState
+): FormData => {
   const data = new (window as any).FormData();
 
-  const {
-    id,
-    properties,
-    entries,
-  } = state;
+  const { id, properties, entries } = state;
 
   if (id) {
     data.append("id", id);
   }
 
-  const {
-    name,
-    collections,
-  } = properties.current;
+  const { name, collections } = properties.current;
 
   data.append("name", name);
   data.append("collections", JSON.stringify(collections));
 
-  const {
-    baseline,
-    current,
-    removed,
-  } = entries;
+  const { baseline, current, removed } = entries;
 
   data.append("entries", JSON.stringify(current));
 
@@ -541,13 +444,11 @@ export const getCustomListEditorFormData = (state: CustomListEditorState): FormD
   return data;
 };
 
-export const getCustomListEditorSearchUrl = (state: CustomListEditorState, library: string): string => {
-  const {
-    entryPoint,
-    terms,
-    sort,
-    language,
-  } = state.searchParams;
+export const getCustomListEditorSearchUrl = (
+  state: CustomListEditorState,
+  library: string
+): string => {
+  const { entryPoint, terms, sort, language } = state.searchParams;
 
   const queryParams = [`q=${encodeURIComponent(terms)}`];
 
@@ -556,7 +457,7 @@ export const getCustomListEditorSearchUrl = (state: CustomListEditorState, libra
   }
 
   if (sort) {
-    queryParams.push(`order=${encodeURIComponent(sort)}`)
+    queryParams.push(`order=${encodeURIComponent(sort)}`);
   }
 
   if (language) {

@@ -28,10 +28,7 @@ export interface CustomListEntriesEditorProps {
 }
 
 const renderCatalogLink = (book, opdsFeedUrl) => {
-  const {
-    title,
-    url,
-  } = book;
+  const { title, url } = book;
 
   if (!url) {
     return null;
@@ -48,9 +45,9 @@ const renderCatalogLink = (book, opdsFeedUrl) => {
       View details
     </CatalogLink>
   );
-}
+};
 
-export default ({
+const CustomListEntriesEditor = ({
   entries,
   entryCount,
   isFetchingMoreCustomListEntries,
@@ -88,21 +85,16 @@ export default ({
       return ids;
     }, {});
 
-    return searchResults.books.filter((book) => !entryIds[book.id])
+    return searchResults.books.filter((book) => !entryIds[book.id]);
   }, [entries, searchResults]);
 
   const handleDragStart = (event) => {
     setDraggingFrom(event.source.droppableId),
-
-    document.body.classList.add("dragging");
-  }
+      document.body.classList.add("dragging");
+  };
 
   const handleDragEnd = (event) => {
-    const {
-      draggableId,
-      source,
-      destination,
-    } = event;
+    const { draggableId, source, destination } = event;
 
     if (
       source.droppableId === "search-results" &&
@@ -119,22 +111,20 @@ export default ({
     }
 
     document.body.classList.remove("dragging");
-  }
+  };
 
   const visibleEntryCount = entries.length;
   const startNum = visibleEntryCount > 0 ? 1 : 0;
   const endNum = visibleEntryCount;
   const booksText = entryCount === 1 ? "book" : "books";
 
-  const entryListDisplay = (entryCount > 0)
-    ?  `Displaying ${startNum} - ${endNum} of ${entryCount} ${booksText}`
-    :  "No books in this list";
+  const entryListDisplay =
+    entryCount > 0
+      ? `Displaying ${startNum} - ${endNum} of ${entryCount} ${booksText}`
+      : "No books in this list";
 
   return (
-    <DragDropContext
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
+    <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="custom-list-drag-and-drop">
         <div className="custom-list-search-results">
           <div className="droppable-header">
@@ -172,52 +162,53 @@ export default ({
                   <p>Drag books here to remove them from the list.</p>
                 )}
 
-                {draggingFrom !== "custom-list-entries" && filteredSearchResults.map((book) => (
-                  <Draggable key={book.id} draggableId={book.id}>
-                    {(provided, snapshot) => (
-                      <li>
-                        <div
-                          className={
-                            "search-result" +
-                            (snapshot.isDragging ? " dragging" : "")
-                          }
-                          ref={provided.innerRef}
-                          style={provided.draggableStyle}
-                          {...provided.dragHandleProps}
-                        >
-                          <GrabIcon />
+                {draggingFrom !== "custom-list-entries" &&
+                  filteredSearchResults.map((book) => (
+                    <Draggable key={book.id} draggableId={book.id}>
+                      {(provided, snapshot) => (
+                        <li>
+                          <div
+                            className={
+                              "search-result" +
+                              (snapshot.isDragging ? " dragging" : "")
+                            }
+                            ref={provided.innerRef}
+                            style={provided.draggableStyle}
+                            {...provided.dragHandleProps}
+                          >
+                            <GrabIcon />
 
-                          <div>
-                            <div className="title">{book.title}</div>
+                            <div>
+                              <div className="title">{book.title}</div>
 
-                            <div className="authors">
-                              {book.authors.join(", ")}
+                              <div className="authors">
+                                {book.authors.join(", ")}
+                              </div>
+                            </div>
+
+                            {getMediumSVG(getMedium(book))}
+
+                            <div className="links">
+                              {renderCatalogLink(book, opdsFeedUrl)}
+
+                              <Button
+                                callback={() => addEntry?.(book.id)}
+                                className="right-align"
+                                content={
+                                  <span>
+                                    Add to list
+                                    <AddIcon />
+                                  </span>
+                                }
+                              />
                             </div>
                           </div>
 
-                          {getMediumSVG(getMedium(book))}
-
-                          <div className="links">
-                            {renderCatalogLink(book, opdsFeedUrl)}
-
-                            <Button
-                              callback={() => addEntry?.(book.id)}
-                              className="right-align"
-                              content={
-                                <span>
-                                  Add to list
-                                  <AddIcon />
-                                </span>
-                              }
-                            />
-                          </div>
-                        </div>
-
-                        {provided.placeholder}
-                      </li>
-                    )}
-                  </Draggable>
-                ))}
+                          {provided.placeholder}
+                        </li>
+                      )}
+                    </Draggable>
+                  ))}
 
                 {provided.placeholder}
               </ul>
@@ -332,4 +323,6 @@ export default ({
       </div>
     </DragDropContext>
   );
-}
+};
+
+export default CustomListEntriesEditor;

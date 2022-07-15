@@ -35,7 +35,10 @@ import { CollectionData } from "opds-web-client/lib/interfaces";
 import DataFetcher from "opds-web-client/lib/DataFetcher";
 import { RequestError, RequestRejector } from "opds-web-client/lib/DataFetcher";
 import BaseActionCreator from "opds-web-client/lib/actions";
-import { getCustomListEditorFormData, getCustomListEditorSearchUrl } from "./reducers/customListEditor";
+import {
+  getCustomListEditorFormData,
+  getCustomListEditorSearchUrl,
+} from "./reducers/customListEditor";
 
 /** Create redux actions to be dispatched by connected components, mostly
     to make requests to the server. */
@@ -115,13 +118,19 @@ export default class ActionCreator extends BaseActionCreator {
   static readonly EDIT_CUSTOM_LIST = "EDIT_CUSTOM_LIST";
   static readonly DELETE_CUSTOM_LIST = "DELETE_CUSTOM_LIST";
   static readonly OPEN_CUSTOM_LIST = "OPEN_CUSTOM_LIST";
-  static readonly UPDATE_CUSTOM_LIST_EDITOR_PROPERTY = "UPDATE_CUSTOM_LIST_EDITOR_PROPERTY";
-  static readonly TOGGLE_CUSTOM_LIST_EDITOR_COLLECTION = "TOGGLE_CUSTOM_LIST_EDITOR_COLLECTION";
-  static readonly UPDATE_CUSTOM_LIST_EDITOR_SEARCH_PARAM = "UPDATE_CUSTOM_LIST_EDITOR_SEARCH_PARAM";
+  static readonly UPDATE_CUSTOM_LIST_EDITOR_PROPERTY =
+    "UPDATE_CUSTOM_LIST_EDITOR_PROPERTY";
+  static readonly TOGGLE_CUSTOM_LIST_EDITOR_COLLECTION =
+    "TOGGLE_CUSTOM_LIST_EDITOR_COLLECTION";
+  static readonly UPDATE_CUSTOM_LIST_EDITOR_SEARCH_PARAM =
+    "UPDATE_CUSTOM_LIST_EDITOR_SEARCH_PARAM";
   static readonly ADD_CUSTOM_LIST_EDITOR_ENTRY = "ADD_CUSTOM_LIST_EDITOR_ENTRY";
-  static readonly ADD_ALL_CUSTOM_LIST_EDITOR_ENTRIES = "ADD_ALL_CUSTOM_LIST_EDITOR_ENTRIES";
-  static readonly DELETE_CUSTOM_LIST_EDITOR_ENTRY = "DELETE_CUSTOM_LIST_EDITOR_ENTRY";
-  static readonly DELETE_ALL_CUSTOM_LIST_EDITOR_ENTRIES = "DELETE_ALL_CUSTOM_LIST_EDITOR_ENTRIES";
+  static readonly ADD_ALL_CUSTOM_LIST_EDITOR_ENTRIES =
+    "ADD_ALL_CUSTOM_LIST_EDITOR_ENTRIES";
+  static readonly DELETE_CUSTOM_LIST_EDITOR_ENTRY =
+    "DELETE_CUSTOM_LIST_EDITOR_ENTRY";
+  static readonly DELETE_ALL_CUSTOM_LIST_EDITOR_ENTRIES =
+    "DELETE_ALL_CUSTOM_LIST_EDITOR_ENTRIES";
   static readonly RESET_CUSTOM_LIST_EDITOR = "RESET_CUSTOM_LIST_EDITOR";
   static readonly LANES = "LANES";
   static readonly EDIT_LANE = "EDIT_LANE";
@@ -848,11 +857,11 @@ export default class ActionCreator extends BaseActionCreator {
         return dispatch(
           this.fetchOPDS<CollectionData>(
             ActionCreator.CUSTOM_LIST_DETAILS_MORE,
-            data.nextPageUrl,
+            data.nextPageUrl
           ).bind(this)
         );
       }
-    }
+    };
   }
 
   editCustomList(library: string, data: FormData, id?: string) {
@@ -874,11 +883,12 @@ export default class ActionCreator extends BaseActionCreator {
   }
 
   openCustomList(listId: string) {
-    return (dispatch, getState) => dispatch({
-      type: ActionCreator.OPEN_CUSTOM_LIST,
-      id: listId,
-      data: getState().editor.customLists.data,
-    });
+    return (dispatch, getState) =>
+      dispatch({
+        type: ActionCreator.OPEN_CUSTOM_LIST,
+        id: listId,
+        data: getState().editor.customLists.data,
+      });
   }
 
   updateCustomListEditorProperty(name: string, value) {
@@ -905,18 +915,20 @@ export default class ActionCreator extends BaseActionCreator {
   }
 
   addCustomListEditorEntry(id: string) {
-    return (dispatch, getState) => dispatch({
-      type: ActionCreator.ADD_CUSTOM_LIST_EDITOR_ENTRY,
-      id,
-      data: getState().editor.collection.data,
-    });
+    return (dispatch, getState) =>
+      dispatch({
+        type: ActionCreator.ADD_CUSTOM_LIST_EDITOR_ENTRY,
+        id,
+        data: getState().editor.collection.data,
+      });
   }
 
   addAllCustomListEditorEntries() {
-    return (dispatch, getState) => dispatch({
-      type: ActionCreator.ADD_ALL_CUSTOM_LIST_EDITOR_ENTRIES,
-      data: getState().editor.collection.data,
-    });
+    return (dispatch, getState) =>
+      dispatch({
+        type: ActionCreator.ADD_ALL_CUSTOM_LIST_EDITOR_ENTRIES,
+        data: getState().editor.collection.data,
+      });
   }
 
   deleteCustomListEditorEntry(id: string) {
@@ -940,35 +952,30 @@ export default class ActionCreator extends BaseActionCreator {
 
   saveCustomListEditor(library: string) {
     return (dispatch, getState) => {
-      const {
-        customListEditor
-      } = getState().editor;
+      const { customListEditor } = getState().editor;
 
-      const {
-        id,
-      } = customListEditor;
+      const { id } = customListEditor;
 
-      return (
-        dispatch(this.editCustomList(library, getCustomListEditorFormData(customListEditor), id))
-          .then(() => {
-            const {
-              successMessage: savedListId,
-            } = getState().editor.customLists;
+      return dispatch(
+        this.editCustomList(
+          library,
+          getCustomListEditorFormData(customListEditor),
+          id
+        )
+      ).then(() => {
+        const { successMessage: savedListId } = getState().editor.customLists;
 
-            if ((id === null) && savedListId) {
-              console.log("navigating");
-              window.location.href = `/admin/web/lists/${library}/edit/${savedListId}`;
-            }
-          })
-      );
+        if (id === null && savedListId) {
+          console.log("navigating");
+          window.location.href = `/admin/web/lists/${library}/edit/${savedListId}`;
+        }
+      });
     };
   }
 
   executeCustomListEditorSearch(library: string) {
     return (dispatch, getState) => {
-      const {
-        customListEditor
-      } = getState().editor;
+      const { customListEditor } = getState().editor;
 
       const url = getCustomListEditorSearchUrl(customListEditor, library);
 
@@ -978,10 +985,7 @@ export default class ActionCreator extends BaseActionCreator {
 
   fetchMoreCustomListEditorSearchResults() {
     return (dispatch, getState) => {
-      const {
-        data,
-        isFetchingPage,
-      } = getState().editor.collection;
+      const { data, isFetchingPage } = getState().editor.collection;
 
       if (!isFetchingPage) {
         return dispatch(this.fetchPage(data.nextPageUrl));

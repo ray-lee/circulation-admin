@@ -12,7 +12,7 @@ import {
   CustomListEditorProperties,
   CustomListEditorEntriesData,
   CustomListEditorSearchParams,
-} from "../reducers/customListEditor"
+} from "../reducers/customListEditor";
 
 import CustomListEntriesEditor from "./CustomListEntriesEditor";
 import CustomListSearch from "./CustomListSearch";
@@ -48,7 +48,7 @@ type CustomListEditorProps = {
   updateSearchParam?: (name: string, value) => void;
 };
 
-export default ({
+const CustomListEditor = ({
   collections,
   entries,
   entryPoints,
@@ -76,10 +76,7 @@ export default ({
   updateProperty,
   updateSearchParam,
 }: CustomListEditorProps) => {
-  const {
-    collections: listCollections,
-    name,
-  } = properties;
+  const { collections: listCollections, name } = properties;
 
   return (
     <div className="custom-list-editor">
@@ -126,7 +123,8 @@ export default ({
                 content={
                   <div className="collections">
                     <div>
-                      Automatically add new books from these collections to this list:
+                      Automatically add new books from these collections to this
+                      list:
                     </div>
 
                     {collections.map(({ id, name }) => (
@@ -164,7 +162,9 @@ export default ({
           loadMoreEntries={loadMoreEntries}
           isFetchingMoreSearchResults={isFetchingMoreSearchResults}
           isFetchingMoreCustomListEntries={isFetchingMoreCustomListEntries}
-          opdsFeedUrl={`${library?.short_name}/${name ? `lists/${name}/` : ""}crawlable`}
+          opdsFeedUrl={`${library?.short_name}/${
+            name ? `lists/${name}/` : ""
+          }crawlable`}
           entryCount={entries.currentTotalCount}
           listId={listId}
           addEntry={addEntry}
@@ -175,4 +175,6 @@ export default ({
       </div>
     </div>
   );
-}
+};
+
+export default CustomListEditor;
