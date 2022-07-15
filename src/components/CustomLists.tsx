@@ -52,14 +52,13 @@ export interface CustomListsDispatchProps {
   fetchLanes: () => Promise<LanesData>;
   fetchCustomLists: () => Promise<CustomListsData>;
   fetchCustomListDetails: (listId: string) => Promise<CollectionData>;
-  saveCustomListEditor: () => Promise<void>;
+  saveCustomListEditor: () => void;
   resetCustomListEditor?: () => void;
-  executeCustomListEditorSearch?: () => Promise<CollectionData>;
+  executeCustomListEditorSearch?: () => void;
   deleteCustomList: (listId: string) => Promise<void>;
   openCustomList: (listId: string) => void;
-  search: (url: string) => Promise<CollectionData>;
-  loadMoreSearchResults: (url: string) => Promise<CollectionData>;
-  loadMoreEntries: (url: string) => Promise<CollectionData>;
+  loadMoreSearchResults: () => void;
+  loadMoreEntries: () => void;
   fetchCollections: () => Promise<CollectionsData>;
   fetchLibraries: () => void;
   fetchLanguages: () => void;
@@ -115,18 +114,6 @@ export class CustomLists extends React.Component<
   }
 
   render(): JSX.Element {
-    let listCollections = [];
-    let entryCount;
-
-    if (this.props.lists) {
-      this.props.lists.forEach((list) => {
-        if (list.id === parseInt(this.props.identifier, 10)) {
-          entryCount = list.entry_count;
-          listCollections = list.collections;
-        }
-      });
-    }
-
     return (
       <main className="custom-lists-container">
         {this.props.fetchError && (
@@ -136,7 +123,7 @@ export class CustomLists extends React.Component<
         <div className="custom-lists">
           {this.renderSidebar()}
           {this.props.editOrCreate &&
-            this.renderEditor(entryCount, listCollections)}
+            this.renderEditor()}
         </div>
       </main>
     );
@@ -158,7 +145,7 @@ export class CustomLists extends React.Component<
     );
   }
 
-  renderEditor(entryCount, listCollections): JSX.Element {
+  renderEditor(): JSX.Element {
     const editorProps = {
       collections: this.collectionsForLibrary(),
       properties: this.props.customListEditorProperties,
@@ -176,8 +163,10 @@ export class CustomLists extends React.Component<
       library: this.props.libraries?.find(
         (l) => l.short_name === this.props.library
       ),
-      loadMoreEntries: this.props.loadMoreEntries,
-      loadMoreSearchResults: this.props.loadMoreSearchResults,
+      loadMoreEntries:
+        this.props.listDetails?.nextPageUrl && this.props.loadMoreEntries,
+      loadMoreSearchResults:
+        this.props.searchResults?.nextPageUrl && this.props.loadMoreSearchResults,
       search: this.props.executeCustomListEditorSearch,
       searchResults: this.props.searchResults,
       updateProperty: this.props.updateCustomListEditorProperty,
@@ -194,9 +183,6 @@ export class CustomLists extends React.Component<
             startingTitle: this.props.startingTitle,
           }
         : {
-            entryCount: entryCount,
-            list: this.props.listDetails,
-            listCollections: listCollections,
             listId: this.props.identifier,
           };
     return <CustomListEditor {...{ ...editorProps, ...extraProps }} />;
@@ -321,7 +307,7 @@ export class CustomLists extends React.Component<
   }
 
 
-  async saveCustomListEditor(): Promise<void> {
+  async saveCustomListEditor() {
     const {
       identifier: listId,
     } = this.props;
@@ -464,14 +450,14 @@ function mapDispatchToProps(dispatch, ownProps) {
       dispatch(actions.resetCustomListEditor()),
     executeCustomListEditorSearch: () =>
       dispatch(actions.executeCustomListEditorSearch(ownProps.library)),
+    loadMoreSearchResults: () =>
+      dispatch(actions.fetchMoreCustomListEditorSearchResults()),
     deleteCustomList: (listId: string) =>
       dispatch(actions.deleteCustomList(ownProps.library, listId)),
     openCustomList: (listId: string) =>
       dispatch(actions.openCustomList(listId)),
-    search: (url: string) => dispatch(actions.fetchCollection(url)),
-    loadMoreSearchResults: (url: string) => dispatch(actions.fetchPage(url)),
-    loadMoreEntries: (url: string) =>
-      dispatch(actions.fetchMoreCustomListEntries(url)),
+    loadMoreEntries: () =>
+      dispatch(actions.fetchMoreCustomListEntries()),
     fetchCollections: () => dispatch(actions.fetchCollections()),
     fetchLibraries: () => dispatch(actions.fetchLibraries()),
     fetchLanes: () => dispatch(actions.fetchLanes(ownProps.library)),

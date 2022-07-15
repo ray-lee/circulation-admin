@@ -941,13 +941,14 @@ describe("actions", () => {
   describe("fetchMoreCustomListEntries", () => {
     it("dispatches request and load", async () => {
       const dispatch = stub();
+      const getState = stub();
       const customListDetailsData = {
         title: "custom list",
       };
       fetcher.testData = customListDetailsData;
       fetcher.resolve = true;
 
-      const data = await actions.fetchMoreCustomListEntries("url")(dispatch);
+      const data = await actions.fetchMoreCustomListEntries()(dispatch, getState);
 
       expect(dispatch.callCount).to.equal(3);
       expect(dispatch.args[0][0].type).to.equal(

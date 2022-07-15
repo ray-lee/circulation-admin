@@ -837,11 +837,22 @@ export default class ActionCreator extends BaseActionCreator {
     ).bind(this);
   }
 
-  fetchMoreCustomListEntries(url: string) {
-    return this.fetchOPDS<CollectionData>(
-      ActionCreator.CUSTOM_LIST_DETAILS_MORE,
-      url
-    ).bind(this);
+  fetchMoreCustomListEntries() {
+    return (dispatch, getState) => {
+      const {
+        data,
+        isFetchingMoreEntries,
+      } = getState().editor.customListDetails;
+
+      if (!isFetchingMoreEntries) {
+        return dispatch(
+          this.fetchOPDS<CollectionData>(
+            ActionCreator.CUSTOM_LIST_DETAILS_MORE,
+            data.nextPageUrl,
+          ).bind(this)
+        );
+      }
+    }
   }
 
   editCustomList(library: string, data: FormData, id?: string) {
@@ -962,6 +973,19 @@ export default class ActionCreator extends BaseActionCreator {
       const url = getCustomListEditorSearchUrl(customListEditor, library);
 
       return dispatch(this.fetchCollection(url));
+    };
+  }
+
+  fetchMoreCustomListEditorSearchResults() {
+    return (dispatch, getState) => {
+      const {
+        data,
+        isFetchingPage,
+      } = getState().editor.collection;
+
+      if (!isFetchingPage) {
+        return dispatch(this.fetchPage(data.nextPageUrl));
+      }
     };
   }
 
