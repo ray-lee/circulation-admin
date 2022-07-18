@@ -89,21 +89,15 @@ const isModified = (state: CustomListEditorState): boolean => {
 
   const { added, removed } = entries;
 
-  if (Object.keys(added).length > 0 || Object.keys(removed).length > 0) {
-    return true;
-  }
-
   const { baseline, current } = properties;
 
-  if (
+  return (
+    Object.keys(added).length > 0 ||
+    Object.keys(removed).length > 0 ||
     baseline.name !== current.name ||
     baseline.collections.length !== current.collections.length ||
     !baseline.collections.every((id) => current.collections.includes(id))
-  ) {
-    return true;
-  }
-
-  return false;
+  );
 };
 
 const validateAndCheckModified = (
@@ -115,7 +109,7 @@ const validateAndCheckModified = (
   });
 };
 
-const validated = (handler) => (state, action) =>
+const validatedHandler = (handler) => (state: CustomListEditorState, action?) =>
   validateAndCheckModified(handler(state, action));
 
 const initialStateForList = (id: number, data): CustomListEditorState => {
@@ -134,12 +128,13 @@ const initialStateForList = (id: number, data): CustomListEditorState => {
     draftState.id = id;
 
     if (customList) {
-      draftState.properties.baseline = {
+      const initialProperties = {
         name: customList.name,
         collections: customList.collections.map((collection) => collection.id),
       };
 
-      draftState.properties.current = draftState.properties.baseline;
+      draftState.properties.baseline = initialProperties;
+      draftState.properties.current = initialProperties;
 
       draftState.entries.baselineTotalCount = customList.entry_count;
     }
@@ -162,7 +157,6 @@ const handleCustomListsLoad = (
   action
 ): CustomListEditorState => {
   const { id } = state;
-
   const { data } = action;
 
   return initialStateForList(id, data);
@@ -190,7 +184,7 @@ const applyEntriesDelta = (entries: CustomListEditorEntriesData) => {
   );
 };
 
-const handleCustomListDetailsLoad = validated(
+const handleCustomListDetailsLoad = validatedHandler(
   (state: CustomListEditorState, action): CustomListEditorState => {
     return produce(state, (draftState) => {
       const { entries } = draftState;
@@ -202,7 +196,7 @@ const handleCustomListDetailsLoad = validated(
   }
 );
 
-const handleCustomListDetailsMoreLoad = validated(
+const handleCustomListDetailsMoreLoad = validatedHandler(
   (state: CustomListEditorState, action): CustomListEditorState => {
     return produce(state, (draftState) => {
       const { entries } = draftState;
@@ -214,7 +208,7 @@ const handleCustomListDetailsMoreLoad = validated(
   }
 );
 
-const handleUpdateCustomListEditorProperty = validated(
+const handleUpdateCustomListEditorProperty = validatedHandler(
   (state: CustomListEditorState, action): CustomListEditorState => {
     const { name, value } = action;
 
@@ -224,13 +218,12 @@ const handleUpdateCustomListEditorProperty = validated(
   }
 );
 
-const handleToggleCustomListEditorCollection = validated(
+const handleToggleCustomListEditorCollection = validatedHandler(
   (state: CustomListEditorState, action): CustomListEditorState => {
     const { id } = action;
 
     return produce(state, (draftState) => {
       const { collections } = draftState.properties.current;
-
       const index = collections.indexOf(id);
 
       if (index < 0) {
@@ -262,18 +255,17 @@ const bookToEntry = (book) => ({
   language: book.language || "",
 });
 
-const handleAddCustomListEditorEntry = validated(
+const handleAddCustomListEditorEntry = validatedHandler(
   (state: CustomListEditorState, action): CustomListEditorState => {
     const { id, data } = action;
 
     return produce(state, (draftState) => {
       const { entries } = draftState;
-
       const { baseline, added, removed } = entries;
 
-      const isInList: boolean = !!baseline.find((book) => book.id === id);
+      const inList = baseline.find((book) => book.id === id);
 
-      if (!isInList) {
+      if (!inList) {
         const bookToAdd = data.books.find((book) => book.id === id);
         const isAdded = !!added[id];
 
@@ -289,17 +281,17 @@ const handleAddCustomListEditorEntry = validated(
   }
 );
 
-const handleAddAllCustomListEditorEntries = validated(
+const handleAddAllCustomListEditorEntries = validatedHandler(
   (state: CustomListEditorState, action): CustomListEditorState => {
     const { books } = action.data;
 
     // Add the books in reverse order, so that they appear in the entry list in the same order as
     // they appear in the search results.
+
     books.reverse();
 
     return produce(state, (draftState) => {
       const { entries } = draftState;
-
       const { baseline, added, removed } = entries;
 
       const listIds = baseline.reduce((ids, book) => {
@@ -309,26 +301,22 @@ const handleAddAllCustomListEditorEntries = validated(
       }, {});
 
       books
+        .forEach((book) => delete removed[book.id])
         .filter((book) => !listIds[book.id] && !added[book.id])
         .map((book) => bookToEntry(book))
         .forEach((entry) => (added[entry.id] = entry));
-
-      books.forEach((book) => {
-        delete removed[book.id];
-      });
 
       applyEntriesDelta(entries);
     });
   }
 );
 
-const handleDeleteCustomListEditorEntry = validated(
+const handleDeleteCustomListEditorEntry = validatedHandler(
   (state: CustomListEditorState, action): CustomListEditorState => {
     const { id } = action;
 
     return produce(state, (draftState) => {
       const { entries } = draftState;
-
       const { added, removed } = entries;
 
       if (added[id]) {
@@ -342,11 +330,10 @@ const handleDeleteCustomListEditorEntry = validated(
   }
 );
 
-const handleDeleteAllCustomListEditorEntries = validated(
+const handleDeleteAllCustomListEditorEntries = validatedHandler(
   (state: CustomListEditorState): CustomListEditorState => {
     return produce(state, (draftState) => {
       const { entries } = draftState;
-
       const { baseline, added, removed } = entries;
 
       baseline.forEach((book) => {
@@ -362,7 +349,7 @@ const handleDeleteAllCustomListEditorEntries = validated(
   }
 );
 
-const handleResetCustomListEditor = validated(
+const handleResetCustomListEditor = validatedHandler(
   (state: CustomListEditorState): CustomListEditorState => {
     return produce(state, (draftState) => {
       const { properties, entries } = draftState;
