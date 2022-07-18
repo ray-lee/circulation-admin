@@ -53,7 +53,7 @@ export interface CustomListsDispatchProps {
   fetchCustomLists: () => Promise<CustomListsData>;
   fetchCustomListDetails: (listId: string) => Promise<CollectionData>;
   openCustomListEditor: (listId: string) => void;
-  saveCustomListEditor: () => void;
+  saveCustomListEditor: () => Promise<void>;
   resetCustomListEditor?: () => void;
   executeCustomListEditorSearch?: () => void;
   updateCustomListEditorProperty?: (name: string, value) => void;
