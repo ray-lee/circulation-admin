@@ -76,9 +76,7 @@ const initialState: CustomListEditorState = {
 
 const isValid = (state: CustomListEditorState): boolean => {
   const { properties, entries } = state;
-
   const { name, collections } = properties.current;
-
   const { currentTotalCount } = entries;
 
   return !!name && (collections.length > 0 || currentTotalCount > 0);
@@ -86,9 +84,7 @@ const isValid = (state: CustomListEditorState): boolean => {
 
 const isModified = (state: CustomListEditorState): boolean => {
   const { properties, entries } = state;
-
   const { added, removed } = entries;
-
   const { baseline, current } = properties;
 
   return (
