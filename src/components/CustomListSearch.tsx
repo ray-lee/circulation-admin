@@ -6,7 +6,7 @@ import SearchIcon from "./icons/SearchIcon";
 import EditableInput from "./EditableInput";
 
 export interface CustomListSearchProps {
-  entryPoints?: string[];
+  entryPoints: string[];
   languages: LanguagesData;
   library: LibraryData;
   searchParams: CustomListEditorSearchParams;
