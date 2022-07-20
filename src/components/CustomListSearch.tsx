@@ -11,8 +11,8 @@ export interface CustomListSearchProps {
   library: LibraryData;
   searchParams: CustomListEditorSearchParams;
   startingTitle?: string;
-  updateSearchParam?: (name: string, value) => void;
   search: () => void;
+  updateSearchParam?: (name: string, value) => void;
 }
 
 const CustomListSearch = ({
