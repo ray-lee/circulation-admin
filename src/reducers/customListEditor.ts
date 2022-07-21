@@ -7,43 +7,162 @@ export interface Entry extends BookData {
   medium?: string;
 }
 
+/**
+ * Information about the entries in a list that is being edited.
+ */
 export interface CustomListEditorEntriesData {
+  /**
+   * The visible entries in the list, as of the last save. This can be used to restore the editor
+   * to the last save point, and to detect changes since the last save. Note that this does not
+   * necessarily contain all of the entries, but only the entries in the pages that have been
+   * retrieved from the CM.
+   */
   baseline: Entry[];
+
+  /**
+   * The total number of entries in the list, as of the last save. This can be used when restoring
+   * the editor to the last save point. This reflects the total number of entries in the list (as
+   * reported by the CM), not just the number of visible ones from the pages that have been
+   * retrieved. As such, it may be greater than baseline.length.
+   */
   baselineTotalCount: number;
+
+  /**
+   * The entries that have been added to the list since the last save, keyed by id. This is stored
+   * as a delta, so that it can be reapplied to the baseline, if/when baseline is updated from the
+   * CM.
+   */
   added: Record<string, Entry>;
+
+  /**
+   * The entries that have been removed from the list since the last save, keyed by id. This is
+   * stored as a delta, so that it can be reapplied to the baseline, if/when baseline is updated
+   * from the CM.
+   */
   removed: Record<string, true>;
+
+  /**
+   * The currently visible entries in the list, computed by applying the delta to the baseline.
+   * This is purely derived from baseline, added, and removed, but is stored here as a convenience/
+   * optimization, so that view components will not need to perform a potentially expensive
+   * computation when rendering. Note that like baseline, this list contains only the entries in
+   * pages that have been retrieved from the CM, and any entries added by the user since the last
+   * save, which is not necessarily all of the current entries in the list.
+   */
   current: Entry[];
+
+  /**
+   * The current number of entries in the list, as of the last save. This is derived from
+   * baselineTotalCount, added, and removed. It is stored here as a convenience, so that view
+   * components won't have to compute the value when rendering.
+   */
   currentTotalCount: number;
 }
 
+/**
+ * Properties of the custom list.
+ */
 export interface CustomListEditorProperties {
+  /**
+   * The name (title) of the list.
+   */
   name: string;
+
+  /**
+   * The ids of collections that should be used to automatically populate the list.
+   */
   collections: (string | number)[];
 }
 
+/**
+ * Properties of the custom list, tracked since the last save.
+ */
 export interface CustomListEditorTrackedProperties {
+  /**
+   * The properties of the list, as of the last save. This can be used to restore the editor to the
+   * last save point, and to detect changes since the last save.
+   */
   baseline: CustomListEditorProperties;
+
+  /**
+   * The current properties of the list, since the last save.
+   */
   current: CustomListEditorProperties;
 }
 
+/**
+ * Search parameters.
+ */
 export interface CustomListEditorSearchParams {
+  /**
+   * The entry point of the search, e.g. ebooks, audiobooks.
+   */
   entryPoint: string;
+
+  /**
+   * The terms to search for.
+   */
   terms: string;
+
+  /**
+   * The desired sort order of search results.
+   */
   sort: string;
+
+  /**
+   * The desired language of search results.
+   */
   language: string;
 }
 
+/**
+ * The state of the custom list editor.
+ */
 export interface CustomListEditorState {
+  /**
+   * The id of the list being edited, null if this is a new list.
+   */
   id: number;
+
+  /**
+   * The properties of the list.
+   */
   properties: CustomListEditorTrackedProperties;
+
+  /**
+   * The parameters to use when searching on the custom list editor.
+   */
   searchParams: CustomListEditorSearchParams;
+
+  /**
+   * The entries in the list.
+   */
   entries: CustomListEditorEntriesData;
+
+  /**
+   * The validity of the list; true if the list is valid, false otherwise. This is derived from
+   * properties and entries. It is stored here as a convenience, so that view components won't need
+   * to compute the validity when rendering.
+   */
   isValid: boolean;
+
+  /**
+   * The modified state of the list; true if the list has been changed since the last save, false
+   * otherwise. This is derived from properties and entries. It is stored here as a convenience, so
+   * that view components won't need to make the determination when rendering.
+   */
   isModified: boolean;
+
+  /**
+   * An error message, if an error has occurred.
+   */
   error: string;
 }
 
-const initialState: CustomListEditorState = {
+/**
+ * The initial state. Provides defaults for a new list.
+ */
+export const initialState: CustomListEditorState = {
   id: null,
   properties: {
     baseline: {
@@ -74,6 +193,13 @@ const initialState: CustomListEditorState = {
   error: null,
 };
 
+/**
+ * Determines if a custom list editor contains valid current data, given its state. A list is valid
+ * if it has a name, and has either: at least one source collection, or at least one entry.
+ *
+ * @param state The custom list editor state
+ * @returns     true if the editor contains valid data, false otherwise
+ */
 const isValid = (state: CustomListEditorState): boolean => {
   const { properties, entries } = state;
   const { name, collections } = properties.current;
@@ -82,6 +208,13 @@ const isValid = (state: CustomListEditorState): boolean => {
   return !!name && (collections.length > 0 || currentTotalCount > 0);
 };
 
+/**
+ * Determines if a custom list editor contains data has been modified since it was last saved,
+ * given its state.
+ *
+ * @param state The custom list editor state
+ * @returns     true if the editor has been modified since last save, false otherwise
+ */
 const isModified = (state: CustomListEditorState): boolean => {
   const { properties, entries } = state;
   const { added, removed } = entries;
@@ -96,6 +229,14 @@ const isModified = (state: CustomListEditorState): boolean => {
   );
 };
 
+/**
+ * Validates the data in a custom list editor state, and checks if the data has been modified.
+ *
+ * @param state The custom list editor state
+ * @returns     A new custom list editor state, with the isValid and isModified properties updated
+ *              to reflect the data in the input state. All other properties of the returned state
+ *              are identical to the input state.
+ */
 const validateAndCheckModified = (
   state: CustomListEditorState
 ): CustomListEditorState => {
@@ -105,9 +246,34 @@ const validateAndCheckModified = (
   });
 };
 
+/**
+ * A decorator for an action handler that:
+ *
+ * - Applies the given handler to obtain a new state.
+ * - Validates the data in the new state, and checks if the data in the new state has been modified
+ *   since the last save.
+ * - Returns a new state, with the isValid and isModified properties updated to be correct for
+ *   the state returned by the given handler.
+ *
+ * This decorator should be applied to any handler that could plausibly affect whether or not the
+ * custom list editor data is valid or modified.
+ *
+ * @param handler The action handler to decorate. This can be any function that accepts a custom
+ *                list editor state and an action, and returns a new custom list editor state.
+ * @returns       The decorated action handler.
+ */
 const validatedHandler = (handler) => (state: CustomListEditorState, action?) =>
   validateAndCheckModified(handler(state, action));
 
+/**
+ * Generates the initial state for a previously saved list.
+ *
+ * @param id   The id of the list.
+ * @param data The data received from a call to the custom_lists endpoint in the CM. This contains
+ *             basic information about all the lists in the library. If a list with the given id
+ *             exists in the data, the initial state is populated with the data for that list.
+ * @returns    The initial state for the list.
+ */
 const initialStateForList = (id: number, data): CustomListEditorState => {
   let customList = null;
   let error = null;
@@ -139,25 +305,14 @@ const initialStateForList = (id: number, data): CustomListEditorState => {
   });
 };
 
-const handleCustomListEditorOpen = (
-  state: CustomListEditorState,
-  action
-): CustomListEditorState => {
-  const { id, data } = action;
-
-  return initialStateForList(id ? parseInt(id, 10) : null, data);
-};
-
-const handleCustomListsLoad = (
-  state: CustomListEditorState,
-  action
-): CustomListEditorState => {
-  const { id } = state;
-  const { data } = action;
-
-  return initialStateForList(id, data);
-};
-
+/**
+ * For a given custom list editor entries data, applies the added and removed deltas to the
+ * baseline entries. This mutates the input object: current is set to the result of applying the
+ * deltas to the baseline; currentTotalCount is set to the total count after applying the delta,
+ * calculated from baselineTotalCount.
+ *
+ * @param entries The entries data to update.
+ */
 const applyEntriesDelta = (entries: CustomListEditorEntriesData) => {
   const { baseline, baselineTotalCount, added, removed } = entries;
 
@@ -178,6 +333,25 @@ const applyEntriesDelta = (entries: CustomListEditorEntriesData) => {
     baselineTotalCount + addedCount - removedCount,
     currentCount
   );
+};
+
+const handleCustomListEditorOpen = (
+  state: CustomListEditorState,
+  action
+): CustomListEditorState => {
+  const { id, data } = action;
+
+  return initialStateForList(id ? parseInt(id, 10) : null, data);
+};
+
+const handleCustomListsLoad = (
+  state: CustomListEditorState,
+  action
+): CustomListEditorState => {
+  const { id } = state;
+  const { data } = action;
+
+  return initialStateForList(id, data);
 };
 
 const handleCustomListDetailsLoad = validatedHandler(
@@ -297,10 +471,11 @@ const handleAddAllCustomListEditorEntries = validatedHandler(
       }, {});
 
       books
-        .forEach((book) => delete removed[book.id])
         .filter((book) => !listIds[book.id] && !added[book.id])
         .map((book) => bookToEntry(book))
         .forEach((entry) => (added[entry.id] = entry));
+
+      books.forEach((book) => delete removed[book.id]);
 
       applyEntriesDelta(entries);
     });
@@ -330,12 +505,10 @@ const handleDeleteAllCustomListEditorEntries = validatedHandler(
   (state: CustomListEditorState): CustomListEditorState => {
     return produce(state, (draftState) => {
       const { entries } = draftState;
-      const { baseline, added, removed } = entries;
+      const { baseline, removed } = entries;
 
       baseline.forEach((book) => {
-        if (!added[book.id]) {
-          removed[book.id] = true;
-        }
+        removed[book.id] = true;
       });
 
       entries.added = {};
