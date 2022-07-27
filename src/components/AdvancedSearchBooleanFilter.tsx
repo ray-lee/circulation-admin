@@ -131,8 +131,8 @@ export default ({
             onChange={handleBoolChange}
             value={query.and ? "and" : "or"}
           >
-            <option aria-selected={!!query.and} value="and">All of the following filters must be matched:</option>
-            <option aria-selected={!!query.or} value="or">Any of the following filters may be matched:</option>
+            <option aria-selected={!!query.and} value="and">All of these filters must be matched:</option>
+            <option aria-selected={!!query.or} value="or">Any of these filters may be matched:</option>
           </select>
         </div>
 

@@ -1166,9 +1166,9 @@ export const getCustomListEditorSearchUrl = (
     queryParams.push(`q=${encodeURIComponent(terms)}`);
   }
 
-  // if (entryPoint !== "All") {
-  //   queryParams.push(`entrypoint=${encodeURIComponent(entryPoint)}`);
-  // }
+  if (entryPoint !== "All") {
+    queryParams.push(`entrypoint=${encodeURIComponent(entryPoint)}`);
+  }
 
   if (sort) {
     queryParams.push(`order=${encodeURIComponent(sort)}`);

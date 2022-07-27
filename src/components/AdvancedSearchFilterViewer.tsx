@@ -4,21 +4,23 @@ import { AdvancedSearchQuery } from "../interfaces";
 import AdvancedSearchFilter from "./AdvancedSearchFilter";
 
 export interface AdvancedSearchFilterViewerProps {
+  query: AdvancedSearchQuery;
+  selectedQueryId?: string;
+  showCodeViewer?: boolean;
   onChange: (query: AdvancedSearchQuery) => void;
   onMove: (id: string, targetId: string) => void;
   onSelect?: (id: string) => void;
   onRemove: (id: string) => void;
-  query: AdvancedSearchQuery;
-  selectedQueryId?: string;
 }
 
 export default ({
+  query,
+  selectedQueryId,
+  showCodeViewer = false,
   onChange,
   onMove,
   onSelect,
   onRemove,
-  query,
-  selectedQueryId,
 }: AdvancedSearchFilterViewerProps): JSX.Element => {
   const [codeOpen, setCodeOpen] = useState(false);
 
@@ -42,15 +44,24 @@ export default ({
         />
       </div>
 
-      <div className="advanced-search-filter-code">
-        <button onClick={handleToggleCodeButtonClick}>{codeOpen ? "-" : "{}"}</button>
+      {
+        showCodeViewer && (
+          <div className="advanced-search-filter-code">
+            <button
+              type="button"
+              onClick={handleToggleCodeButtonClick}
+            >
+              {codeOpen ? "-" : "{}"}
+            </button>
 
-        {codeOpen &&
-          <pre>
-            {JSON.stringify({ query }, (key, value) => (key === "id" ? undefined : value), 2)}
-          </pre>
-        }
-      </div>
+            {codeOpen &&
+              <pre>
+                {JSON.stringify({ query }, (key, value) => (key === "id" ? undefined : value), 2)}
+              </pre>
+            }
+          </div>
+        )
+      }
     </div>
   );
 };

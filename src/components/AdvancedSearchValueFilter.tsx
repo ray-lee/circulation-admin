@@ -12,10 +12,10 @@ export interface AdvancedSearchValueFilterProps {
   selected?: boolean;
 }
 
-function getOpSymbol(name) {
-  const op = operators.find((candidate) => candidate.name === name);
+function getOpSymbol(value) {
+  const op = operators.find((candidate) => candidate.value === value);
 
-  return (op?.symbol || name);
+  return (op?.symbol || value);
 }
 
 export default ({

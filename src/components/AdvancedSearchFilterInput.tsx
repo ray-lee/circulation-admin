@@ -5,141 +5,109 @@ import { fields, operators } from "./AdvancedSearchBuilder";
 import EditableInput from "./EditableInput";
 
 export interface AdvancedSearchFilterInputProps {
+  name: string,
   onAdd: (query: AdvancedSearchQuery) => void;
 }
 
-export interface AdvancedSearchFilterInputState {
-  key?: string;
-  op?: string;
-  value?: string;
-}
+export default ({
+  name: builderName,
+  onAdd,
+}: AdvancedSearchFilterInputProps) => {
+  const opSelect = React.useRef(null);
+  const valueInput = React.useRef(null);
 
-export default class AdvancedSearchFilterInput extends React.Component<
-  AdvancedSearchFilterInputProps,
-  AdvancedSearchFilterInputState
-> {
-  private opSelect = React.createRef<EditableInput>();
-  private valueInput = React.createRef<EditableInput>();
+  const [filterKey, setFilterKey] = React.useState("genre");
+  const [filterOp, setFilterOp] = React.useState("eq");
+  const [filterValue, setFilterValue] = React.useState("");
 
-  constructor(props: AdvancedSearchFilterInputProps) {
-    super(props);
+  const handleKeyChange = (value) => {
+    setFilterKey(value);
+  };
 
-    this.state = {
-      key: "genre",
-      op: "eq",
-      value: "",
-    };
+  const handleOpChange = () => {
+    setFilterOp(opSelect.current?.getValue());
+  };
 
-    this.handleKeyChange = this.handleKeyChange.bind(this);
-    this.handleOpChange = this.handleOpChange.bind(this);
-    this.handleValueChange = this.handleValueChange.bind(this);
-    this.handleAddClick = this.handleAddClick.bind(this);
-  }
+  const handleValueChange = () => {
+    setFilterValue(valueInput.current?.getValue());
+  };
 
-  handleKeyChange(key) {
-    this.setState({
-      key,
-    });
-  }
+  const addFilter = () => {
+    if (filterKey && filterOp && filterValue.trim()) {
+      onAdd?.({
+        id: null,
+        key: filterKey,
+        op: filterOp,
+        value: filterValue,
+      });
 
-  handleOpChange() {
-    this.setState({
-      op: this.opSelect.current?.getValue(),
-    });
-  }
+      setFilterValue("");
+    }
+  };
 
-  handleValueChange() {
-    this.setState({
-      value: this.valueInput.current?.getValue(),
-    });
-  }
-
-  handleAddClick(event: React.SyntheticEvent) {
+  const handleAddClick = (event: React.SyntheticEvent) => {
     event.stopPropagation();
     event.preventDefault();
 
-    const {
-      key,
-      op,
-      value,
-    } = this.state;
-
-    this.props.onAdd({
-      id: null,
-      key,
-      op,
-      value,
-    });
-
-    this.setState({
-      value: ""
-    });
+    addFilter();
   }
 
-  render(): JSX.Element {
-    const {
-      key,
-      op,
-      value,
-    } = this.state;
+  return (
+    <form className="advanced-search-filter-input">
+      <div>
+        {
+          fields.map(({ value, label }) => (
+            <EditableInput
+              key={value}
+              type="radio"
+              name={`${builderName}-filter-key`}
+              checked={value === filterKey ? true : false}
+              label={label}
+              value={value}
+              onChange={handleKeyChange}
+            />
+          ))
+        }
+      </div>
 
-    return (
-      <div className="advanced-search-filter-input">
-        <div>
+      <div>
+        <EditableInput
+          elementType="select"
+          onBlur={handleOpChange}
+          onChange={handleOpChange}
+          ref={opSelect}
+          value={filterOp}
+        >
           {
-            fields.map(({ name, label }) => (
-              <EditableInput
-                checked={key === name}
-                key={name}
-                label={label}
-                name={name}
-                onChange={this.handleKeyChange}
-                type="radio"
-                value={name}
-              />
+            operators.map(({value, label}) => (
+              <option
+                aria-selected={value === filterOp}
+                key={value}
+                value={value}
+              >
+                {label}
+              </option>
             ))
           }
-        </div>
+        </EditableInput>
 
-        <div>
-          <EditableInput
-            elementType="select"
-            onBlur={this.handleOpChange}
-            onChange={this.handleOpChange}
-            ref={this.opSelect}
-            value={op}
-          >
-            {
-              operators.map(({name, label}) => (
-                <option
-                aria-selected={op === name}
-                key={name}
-                value={name}
-                >
-                  {label}
-                </option>
-              ))
-            }
-          </EditableInput>
+        <EditableInput
+          elementType="input"
+          type="text"
+          optionalText={false}
+          ref={valueInput}
+          value={filterValue}
+          onChange={handleValueChange}
+        />
 
-          <EditableInput
-            elementType="input"
-            type="text"
-            name="filter_value"
-            onChange={this.handleValueChange}
-            optionalText={false}
-            ref={this.valueInput}
-            value={value}
-          />
-
-          <Button
-            className="inverted inline"
-            callback={this.handleAddClick}
-            content="Add filter"
-            disabled={!(key && op && value.trim())}
-          />
-        </div>
+        <Button
+          className="inverted inline"
+          callback={handleAddClick}
+          content="Add filter"
+          disabled={!(filterKey && filterOp && filterValue.trim())}
+          type="submit"
+        />
       </div>
-    );
-  }
+    </form>
+  );
 }

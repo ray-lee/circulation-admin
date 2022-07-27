@@ -17,23 +17,23 @@ export interface AdvancedSearchBuilderProps {
 }
 
 export const fields = [
-  { name: "genre", label: "genre" },
-  // { name: "subject", label: "subject" },
-  // { name: "publication date", label: "publication date" },
-  { name: "language", label: "language" },
-  { name: "audience", label: "audience" },
-  { name: "author", label: "author" },
-  { name: "title", label: "title" },
+  { value: "genre", label: "genre" },
+  { value: "language", label: "language" },
+  // { value: "subject", label: "subject" },
+  // { value: "publication date", label: "publication date" },
+  { value: "audience", label: "audience" },
+  { value: "author", label: "author" },
+  { value: "title", label: "title" },
 ];
 
 export const operators = [
-  { name: "eq", label: "equals", symbol: "=" },
-  { name: "contains", label: "contains", symbol: ":" },
-  { name: "neq", label: "does not equal", symbol: "≠" },
-  { name: "gt", label: "is greater than", symbol: ">" },
-  { name: "gte", label: "is greater than or equals", symbol: "≥" },
-  { name: "lt", label: "is less than", symbol: "<" },
-  { name: "lte", label: "is less than or equals", symbol: "≤" },
+  { value: "eq", label: "equals", symbol: "=" },
+  { value: "contains", label: "contains", symbol: ":" },
+  { value: "neq", label: "does not equal", symbol: "≠" },
+  { value: "gt", label: "is greater than", symbol: ">" },
+  { value: "gte", label: "is greater than or equals", symbol: "≥" },
+  { value: "lt", label: "is less than", symbol: "<" },
+  { value: "lte", label: "is less than or equals", symbol: "≤" },
 ];
 
 export default ({
@@ -48,7 +48,10 @@ export default ({
 }: AdvancedSearchBuilderProps) => (
   <DndProvider backend={HTML5Backend}>
     <div className="advanced-search">
-      <AdvancedSearchFilterInput onAdd={(query) => addQuery?.(name, query)} />
+      <AdvancedSearchFilterInput
+        name={name}
+        onAdd={(query) => addQuery?.(name, query)}
+      />
 
       <AdvancedSearchFilterViewer
         query={query}

@@ -48,127 +48,61 @@ const CustomListSearch = ({
 
   const selectedEntryPoint = searchParams.entryPoint.toLowerCase();
 
-  const searchBox = (
-    <fieldset key="search">
-      <legend className="visuallyHidden">Search for titles</legend>
+  const entryPointOptions = entryPointsWithAll.length > 0 && (
+    <div className="entry-points" key="entry-point-options">
+      <span>Search for:</span>
 
-      {entryPointsWithAll.length > 0 && (
-        <div className="entry-points">
-          <span>Select the entry point to search for:</span>
-
-          <div className="entry-points-selection">
-            {entryPointsWithAll.map((entryPoint) => (
-              <EditableInput
-                key={entryPoint}
-                type="radio"
-                name="entry-points-selection"
-                checked={entryPoint.toLowerCase() === selectedEntryPoint}
-                label={entryPoint}
-                value={entryPoint}
-                onChange={() => updateSearchParam?.("entryPoint", entryPoint)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      <input
-        aria-label="Search for a book title"
-        className="form-control"
-        type="text"
-        placeholder="Enter a search term"
-        value={startingTitle || searchParams.terms}
-        onChange={(event) => updateSearchParam?.("terms", event.target.value)}
-      />
-    </fieldset>
-  );
-
-  const librarySettings = library?.settings || {};
-
-  const languageCodes = Object.entries(librarySettings)
-    .filter(([key]) => key.match(/_collections/))
-    .flatMap(([, value]) => value as string[]);
-
-  const languageOptions = (
-    <fieldset key="languages" className="well search-options">
-      <legend>Filter by language:</legend>
-
-      <section>
-        <select
-          value={searchParams.language}
-          onBlur={(event) =>
-            updateSearchParam?.("language", event.target.value)
-          }
-          onChange={(event) =>
-            updateSearchParam?.("language", event.target.value)
-          }
-        >
-          <option value="all" aria-selected={false}>
-            All
-          </option>
-
-          {languageCodes.map((code) => (
-            <option key={code} value={code} aria-selected={false}>
-              {languages?.[code].join("; ")}
-            </option>
-          ))}
-        </select>
-      </section>
-    </fieldset>
+      <div className="entry-points-selection">
+        {entryPointsWithAll.map((entryPoint) => (
+          <EditableInput
+            key={entryPoint}
+            type="radio"
+            name="entry-points-selection"
+            checked={entryPoint.toLowerCase() === selectedEntryPoint}
+            label={entryPoint}
+            value={entryPoint}
+            onChange={() => updateSearchParam?.("entryPoint", entryPoint)}
+          />
+        ))}
+      </div>
+    </div>
   );
 
   const sorts = [
-    ["Relevance (default)", null],
+    ["Relevance", null],
     ["Title", "title"],
     ["Author", "author"],
   ];
 
   const sortOptions = (
-    <fieldset key="sortBy" className="well search-options">
-      <legend>Sort by:</legend>
+    <div className="search-options" key="sort-options">
+      <span>Sort by:</span>
 
-      <ul>
+      <div className="search-options-selection">
         {sorts.map(([label, value]) => (
-          <li key={value}>
-            <EditableInput
-              type="radio"
-              name={value}
-              value={value}
-              label={label}
-              checked={value === searchParams.sort}
-              onChange={() => updateSearchParam?.("sort", value)}
-            />
-          </li>
+          <EditableInput
+            key={value}
+            type="radio"
+            name="sort-selection"
+            value={value}
+            label={label}
+            checked={value === searchParams.sort}
+            onChange={() => updateSearchParam?.("sort", value)}
+          />
         ))}
-      </ul>
+      </div>
 
       <p>
         <i>
-          Note: currently, you can sort only by attributes which you have
-          enabled in this library's Lanes & Filters configuration.
-        </i>
-      </p>
-
-      <p>
-        <i>
-          Selecting "Title" or "Author" will automatically filter out less
+          Note: Results can be sorted by attributes that are enabled in this library's Lanes &amp;
+          Filters configuration. Selecting "Title" or "Author" will automatically filter out less
           relevant results.
         </i>
       </p>
-    </fieldset>
+    </div>
   );
 
-  const searchOptions = (
-    <Panel
-      id="advanced-search-options"
-      key="advanced-search-options"
-      style="instruction"
-      headerText="Advanced search options"
-      content={[sortOptions, languageOptions]}
-    />
-  );
-
-  const renderAdvancedSearch = (name: string) => {
+  const renderAdvancedSearchBuilder = (name: string) => {
     const builder = searchParams.advanced[name];
 
     return (
@@ -185,11 +119,32 @@ const CustomListSearch = ({
     );
   };
 
+  const advancedSearchBuilders = (
+    <div className="search-builders" key="search-builders">
+      <Panel
+        headerText="Works to include"
+        id="search-filters-include"
+        openByDefault={true}
+        content={renderAdvancedSearchBuilder("include")}
+      />
+
+      <Panel
+        headerText="Works to exclude"
+        id="search-filters-exclude"
+        openByDefault={false}
+        content={renderAdvancedSearchBuilder("exclude")}
+      />
+    </div>
+  );
+
   const searchForm = (
     <Form
       onSubmit={search}
-      // content={[searchBox, searchOptions]}
-      content={[renderAdvancedSearch("include"), sortOptions]}
+      content={[
+        entryPointOptions,
+        sortOptions,
+        advancedSearchBuilders,
+      ]}
       buttonClass="left-align"
       buttonContent={
         <span>
