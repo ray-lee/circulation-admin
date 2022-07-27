@@ -95,6 +95,11 @@
           width: auto;
         }
       }
+
+      aside {
+        font-size: .9em;
+        font-style: italic;
+      }
     }
   }
 
@@ -107,49 +112,6 @@
     }
   }
 }
-
-// fieldset.search-options.well {
-//   display: block;
-//   width: unset;
-//   padding-bottom: 20px;
-//   legend {
-//     background-color: $blue-dark;
-//   }
-//   ul, section {
-//     list-style: none;
-//     width: 100%;
-//     margin: auto;
-//     padding: 15px;
-//     border-radius: 4px 4px 0 0;
-//     border-left: 1px solid $blue;
-//     border-right: 1px solid $blue;
-//     border-top: 1px solid $blue;
-//     li .form-group {
-//       margin: 0;
-//     }
-//   }
-//   section {
-//     border-bottom: 1px solid $blue;
-//     border-radius: 4px;
-//   }
-//   p {
-//     border-left: 1px solid $blue;
-//     border-right: 1px solid $blue;
-//     margin: 0 auto;
-//     &:last-child {
-//       border-bottom: 1px solid $blue;
-//       border-radius: 0 0 4px 4px;
-//     }
-//     font-size: 14px;
-//     padding: 0 0 5px 15px;
-//     i {
-//       display: block;
-//       width: 90%;
-//       padding-top: 5px;
-//       border-top: 1px solid $dark-gray;
-//     }
-//   }
-// }
 
 .search-titles {
   width: 100%;

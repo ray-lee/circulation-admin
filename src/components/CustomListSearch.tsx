@@ -92,13 +92,11 @@ const CustomListSearch = ({
         ))}
       </div>
 
-      <p>
-        <i>
-          Note: Results can be sorted by attributes that are enabled in this library's Lanes &amp;
-          Filters configuration. Selecting "Title" or "Author" will automatically filter out less
-          relevant results.
-        </i>
-      </p>
+      <aside>
+        Note: Results can be sorted by attributes that are enabled in this library's Lanes &amp;
+        Filters configuration. Selecting "Title" or "Author" will automatically filter out less
+        relevant results.
+      </aside>
     </div>
   );
 

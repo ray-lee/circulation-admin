@@ -54,7 +54,9 @@ export default ({
 
   return (
     <form className="advanced-search-filter-input">
-      <div>
+      Filter on:
+
+      <div className="filter-key-options">
         {
           fields.map(({ value, label }) => (
             <EditableInput
@@ -70,7 +72,7 @@ export default ({
         }
       </div>
 
-      <div>
+      <div className="filter-op-value-inputs">
         <EditableInput
           elementType="select"
           onBlur={handleOpChange}
