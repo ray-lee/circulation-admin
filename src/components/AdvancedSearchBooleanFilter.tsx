@@ -68,7 +68,7 @@ export default ({
     };
 
     onChange(nextQuery);
-  }
+  };
 
   const handleClick = (event: React.SyntheticEvent) => {
     event.stopPropagation();
@@ -77,7 +77,7 @@ export default ({
     if (onSelect) {
       onSelect(query.id);
     }
-  }
+  };
 
   const handleRemoveButtonClick = (event: React.SyntheticEvent) => {
     event.stopPropagation();
@@ -86,7 +86,7 @@ export default ({
     if (onRemove) {
       onRemove(query.id);
     }
-  }
+  };
 
   const [dropProps, drop]: [{ canDrop: boolean; isOver: boolean; }, ConnectDropTarget] = useDrop(
     {
@@ -159,4 +159,4 @@ export default ({
       </ul>
     </div>
   );
-}
+};

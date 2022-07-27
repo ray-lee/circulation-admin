@@ -3,7 +3,7 @@ import { Panel, Form } from "library-simplified-reusable-components";
 import { AdvancedSearchQuery, LanguagesData, LibraryData } from "../interfaces";
 import { CustomListEditorSearchParams } from "../reducers/customListEditor";
 import SearchIcon from "./icons/SearchIcon";
-import AdvancedSearch from "./AdvancedSearch";
+import AdvancedSearchBuilder from "./AdvancedSearchBuilder";
 import EditableInput from "./EditableInput";
 
 export interface CustomListSearchProps {
@@ -172,7 +172,7 @@ const CustomListSearch = ({
     const builder = searchParams.advanced[name];
 
     return (
-      <AdvancedSearch
+      <AdvancedSearchBuilder
         name={name}
         query={builder.query}
         selectedQueryId={builder.selectedQueryId}
@@ -189,7 +189,7 @@ const CustomListSearch = ({
     <Form
       onSubmit={search}
       // content={[searchBox, searchOptions]}
-      content={[renderAdvancedSearch("include")]}
+      content={[renderAdvancedSearch("include"), sortOptions]}
       buttonClass="left-align"
       buttonContent={
         <span>

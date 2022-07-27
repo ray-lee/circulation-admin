@@ -54,7 +54,7 @@ type CustomListEditorProps = {
   selectAdvSearchQuery?: (builderName: string, id: string) => void;
 };
 
-const CustomListEditor = ({
+export default ({
   collections,
   entries,
   entryPoints,
@@ -192,5 +192,3 @@ const CustomListEditor = ({
     </div>
   );
 };
-
-export default CustomListEditor;

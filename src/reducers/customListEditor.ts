@@ -592,7 +592,7 @@ const addDescendantQuery = (
   }
 
   return query;
-}
+};
 
 const removeDescendantQuery = (
   query: AdvancedSearchQuery,
@@ -664,7 +664,7 @@ const removeDescendantQuery = (
   }
 
   return [query, selectedQueryId];
-}
+};
 
 const findDescendantQuery = (
   query: AdvancedSearchQuery,
@@ -695,11 +695,11 @@ const findDescendantQuery = (
   }
 
   return null;
-}
+};
 
 const getDefaultBooleanOperator = (builderName: string) => {
   return (builderName === "include" ? "and" : "or");
-}
+};
 
 const handleAddCustomListEditorAdvSearchQuery = (
   state: CustomListEditorState,
@@ -1103,6 +1103,33 @@ export const getCustomListEditorFormData = (
   return data;
 };
 
+const buildAdvSearchQueryString = (
+  include: AdvancedSearchQuery,
+  exclude: AdvancedSearchQuery,
+): string => {
+  let query;
+
+  if (exclude) {
+    query = {
+      and: [
+        {
+          ...include,
+        },
+        {
+          not: {
+            ...exclude,
+          },
+        },
+      ],
+    };
+  }
+  else {
+    query = include;
+  }
+console.log(query);
+  return JSON.stringify({ query }, (key, value) => (key === "id" ? undefined : value));
+};
+
 /**
  * Converts search parameters in a custom list editor state to a search query URL.
  *
@@ -1114,21 +1141,43 @@ export const getCustomListEditorSearchUrl = (
   state: CustomListEditorState,
   library: string
 ): string => {
-  const { entryPoint, terms, sort, language } = state.searchParams;
+  const {
+    entryPoint,
+    terms,
+    sort,
+    language,
+    advanced,
+  } = state.searchParams;
 
-  const queryParams = [`q=${encodeURIComponent(terms)}`];
+  const {
+    include,
+    exclude,
+  } = advanced;
 
-  if (entryPoint !== "All") {
-    queryParams.push(`entrypoint=${encodeURIComponent(entryPoint)}`);
+  const queryParams = [];
+
+  if (include.query || exclude.query) {
+    const query = buildAdvSearchQueryString(include.query, exclude.query);
+
+    queryParams.push("search_type=json");
+    queryParams.push(`q=${encodeURIComponent(query)}`)
   }
+  else {
+    queryParams.push(`q=${encodeURIComponent(terms)}`);
+  }
+
+  // if (entryPoint !== "All") {
+  //   queryParams.push(`entrypoint=${encodeURIComponent(entryPoint)}`);
+  // }
 
   if (sort) {
     queryParams.push(`order=${encodeURIComponent(sort)}`);
   }
 
-  if (language) {
-    queryParams.push(`language=${encodeURIComponent(language)}`);
-  }
+  // if (language) {
+  //   queryParams.push(`language=${encodeURIComponent(language)}`);
+  // }
 
   return `/${library}/search?${queryParams.join("&")}`;
 };
+

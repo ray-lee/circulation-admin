@@ -40,7 +40,6 @@ import {
   getCustomListEditorFormData,
   getCustomListEditorSearchUrl,
 } from "./reducers/customListEditor";
-import { string } from "prop-types";
 
 /** Create redux actions to be dispatched by connected components, mostly
     to make requests to the server. */
@@ -1031,7 +1030,7 @@ export default class ActionCreator extends BaseActionCreator {
       const { customListEditor } = getState().editor;
 
       const url = getCustomListEditorSearchUrl(customListEditor, library);
-
+console.log(url);
       return dispatch(this.fetchCollection(url));
     };
   }

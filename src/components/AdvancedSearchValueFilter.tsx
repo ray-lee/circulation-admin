@@ -2,7 +2,7 @@ import * as React from "react";
 import classNames from "classnames";
 import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget, useDrag, useDrop } from "react-dnd";
 import { AdvancedSearchQuery } from "../interfaces";
-import { operators } from './AdvancedSearch';
+import { operators } from "./AdvancedSearchBuilder";
 
 export interface AdvancedSearchValueFilterProps {
   onMove: (id: string, targetId: string) => void;
@@ -36,14 +36,14 @@ export default ({
     if (onSelect) {
       onSelect(query.id);
     }
-  }
+  };
 
   const handleRemoveButtonClick = (event: React.SyntheticEvent) => {
     event.stopPropagation();
     event.preventDefault();
 
     onRemove(query.id);
-  }
+  };
 
   const [, drag]: [{}, ConnectDragSource, ConnectDragPreview] = useDrag(
     {
@@ -100,4 +100,4 @@ export default ({
       <button onClick={handleRemoveButtonClick}>×</button>
     </div>
   );
-}
+};

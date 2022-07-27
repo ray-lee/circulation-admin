@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AdvancedSearchQuery } from "../interfaces";
 import AdvancedSearchFilter from "./AdvancedSearchFilter";
 
-export interface AdvancedSearchFilterViewProps {
+export interface AdvancedSearchFilterViewerProps {
   onChange: (query: AdvancedSearchQuery) => void;
   onMove: (id: string, targetId: string) => void;
   onSelect?: (id: string) => void;
@@ -19,19 +19,19 @@ export default ({
   onRemove,
   query,
   selectedQueryId,
-}: AdvancedSearchFilterViewProps): JSX.Element => {
-  const [codeViewOpen, setCodeViewOpen] = useState(false);
+}: AdvancedSearchFilterViewerProps): JSX.Element => {
+  const [codeOpen, setCodeOpen] = useState(false);
 
-  const handleToggleCodeViewButtonClick = (event: React.SyntheticEvent) => {
+  const handleToggleCodeButtonClick = (event: React.SyntheticEvent) => {
     event.stopPropagation();
     event.preventDefault();
 
-    setCodeViewOpen(!codeViewOpen);
+    setCodeOpen(!codeOpen);
   };
 
   return (
-    <div className="advanced-search-filter-view">
-      <div className="advanced-search-filter-tree-view" role="tree">
+    <div className="advanced-search-filter-viewer">
+      <div className="advanced-search-filter-tree" role="tree">
         <AdvancedSearchFilter
           onChange={onChange}
           onMove={onMove}
@@ -42,10 +42,10 @@ export default ({
         />
       </div>
 
-      <div className="advanced-search-filter-code-view">
-        <button onClick={handleToggleCodeViewButtonClick}>{codeViewOpen ? "-" : "{}"}</button>
+      <div className="advanced-search-filter-code">
+        <button onClick={handleToggleCodeButtonClick}>{codeOpen ? "-" : "{}"}</button>
 
-        {codeViewOpen &&
+        {codeOpen &&
           <pre>
             {JSON.stringify({ query }, (key, value) => (key === "id" ? undefined : value), 2)}
           </pre>

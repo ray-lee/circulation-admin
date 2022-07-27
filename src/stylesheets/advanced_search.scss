@@ -17,13 +17,13 @@
     }
   }
 
-  .advanced-search-filter-view {
+  .advanced-search-filter-viewer {
     display: flex;
     align-items: flex-start;
     border-top: 1px solid #DDD;
   }
 
-  .advanced-search-filter-tree-view {
+  .advanced-search-filter-tree {
     display: flex;
     flex: 1 1 auto;
     margin-top: 10px;
@@ -121,7 +121,7 @@
     }
   }
 
-  .advanced-search-filter-code-view {
+  .advanced-search-filter-code {
     flex: 0 0 auto;
     position: relative;
     font: 9pt monospace;

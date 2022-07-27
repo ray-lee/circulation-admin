@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Button } from "library-simplified-reusable-components";
 import { AdvancedSearchQuery } from "../interfaces";
-import { fields, operators } from "./AdvancedSearch";
+import { fields, operators } from "./AdvancedSearchBuilder";
 import EditableInput from "./EditableInput";
 
 export interface AdvancedSearchFilterInputProps {
