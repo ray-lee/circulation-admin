@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Button } from "library-simplified-reusable-components";
 import { AdvancedSearchQuery } from "../interfaces";
-import { newId } from "./AdvancedSearch";
+import { fields, operators } from "./AdvancedSearch";
 import EditableInput from "./EditableInput";
 
 export interface AdvancedSearchFilterInputProps {
@@ -64,34 +64,12 @@ export default class AdvancedSearchFilterInput extends React.Component<
       value,
     } = this.state;
 
-    // this.props.onAdd({
-    //   id: newId(),
-    //   key,
-    //   op,
-    //   value: value.trim(),
-    // });
-
-    const values = value.split("|").map((value) => value.trim());
-
-    if (values.length === 1) {
-      this.props.onAdd({
-        id: newId(),
-        key,
-        op,
-        value,
-      });
-    }
-    else {
-      this.props.onAdd({
-        id: newId(),
-        or: values.map((val) => ({
-          id: newId(),
-          key,
-          op,
-          value: val,
-        })),
-      });
-    }
+    this.props.onAdd({
+      id: null,
+      key,
+      op,
+      value,
+    });
 
     this.setState({
       value: ""
@@ -105,39 +83,19 @@ export default class AdvancedSearchFilterInput extends React.Component<
       value,
     } = this.state;
 
-    const fields = [
-      "genre",
-      "subject",
-      "publication date",
-      "language",
-      "audience",
-      "author",
-      "title",
-    ];
-
-    const operators = [
-      { name: "eq", label: "equals" },
-      { name: "contains", label: "contains" },
-      // { name: "neq", label: "does not equal" },
-      { name: "gt", label: "is greater than" },
-      { name: "gte", label: "is greater than or equals" },
-      { name: "lt", label: "is less than" },
-      { name: "lte", label: "is less than or equals" },
-    ];
-
     return (
       <div className="advanced-search-filter-input">
         <div>
           {
-            fields.map((field) => (
+            fields.map(({ name, label }) => (
               <EditableInput
-                checked={key === field}
-                key={field}
-                label={field}
-                name={field}
+                checked={key === name}
+                key={name}
+                label={label}
+                name={name}
                 onChange={this.handleKeyChange}
                 type="radio"
-                value={field}
+                value={name}
               />
             ))
           }

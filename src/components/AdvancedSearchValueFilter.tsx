@@ -1,37 +1,30 @@
 import * as React from "react";
 import classNames from "classnames";
-import { AdvancedSearchQuery } from "../interfaces";
 import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget, useDrag, useDrop } from "react-dnd";
+import { AdvancedSearchQuery } from "../interfaces";
+import { operators } from './AdvancedSearch';
 
 export interface AdvancedSearchValueFilterProps {
-  onMove: (id: String, targetId: String) => void;
-  onRemove: (id: String) => void;
-  onSelect?: (query: AdvancedSearchQuery) => void;
+  onMove: (id: string, targetId: string) => void;
+  onRemove: (id: string) => void;
+  onSelect?: (id: string) => void;
   query: AdvancedSearchQuery;
   selected?: boolean;
 }
 
-function getOpSymbol(op) {
-  switch (op) {
-    case "contains": return ":";
-    case "eq": return "=";
-    case "neq": return "≠";
-    case "gt": return ">";
-    case "gte": return "≥";
-    case "lt": return "<";
-    case "lte": return "≤";
-  }
+function getOpSymbol(name) {
+  const op = operators.find((candidate) => candidate.name === name);
 
-  return op;
+  return (op?.symbol || name);
 }
 
-export default function AdvancedSearchValueFilter({
+export default ({
   onMove,
   onRemove,
   onSelect,
   query,
   selected,
-}: AdvancedSearchValueFilterProps) {
+}: AdvancedSearchValueFilterProps) => {
   if (!query) {
     return null;
   }
@@ -41,7 +34,7 @@ export default function AdvancedSearchValueFilter({
     event.preventDefault();
 
     if (onSelect) {
-      onSelect(query);
+      onSelect(query.id);
     }
   }
 

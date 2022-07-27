@@ -2,6 +2,7 @@ import produce from "immer";
 import { BookData } from "opds-web-client/lib/interfaces";
 import { getMedium } from "opds-web-client/lib/utils/book";
 import ActionCreator from "../actions";
+import { AdvancedSearchQuery } from "../interfaces";
 
 export interface Entry extends BookData {
   medium?: string;
@@ -90,6 +91,24 @@ export interface CustomListEditorTrackedProperties {
   current: CustomListEditorProperties;
 }
 
+export interface CustomListEditorAdvancedSearchBuilderData {
+  /**
+   * The ID of the currently selected advanced search query. This could be the root query, or any
+   * query nested under the root query.
+   */
+  selectedQueryId: string;
+
+  /**
+   * The root advanced search query.
+   */
+  query: AdvancedSearchQuery;
+}
+
+export interface CustomListEditorAdvancedSearchBuilders {
+  include: CustomListEditorAdvancedSearchBuilderData;
+  exclude: CustomListEditorAdvancedSearchBuilderData;
+}
+
 /**
  * Search parameters.
  */
@@ -113,6 +132,11 @@ export interface CustomListEditorSearchParams {
    * The desired language of search results.
    */
   language: string;
+
+  /**
+   * Advanced search builder information.
+   */
+  advanced: CustomListEditorAdvancedSearchBuilders;
 }
 
 /**
@@ -179,6 +203,16 @@ export const initialState: CustomListEditorState = {
     terms: "",
     sort: null,
     language: "all",
+    advanced: {
+      include: {
+        query: null,
+        selectedQueryId: null,
+      },
+      exclude: {
+        query: null,
+        selectedQueryId: null,
+      },
+    },
   },
   entries: {
     baseline: [],
@@ -496,6 +530,333 @@ const handleUpdateCustomListEditorSearchParam = (
   });
 };
 
+let idCounter = 0;
+
+const newQueryId = (): string => {
+  const id = idCounter.toString();
+
+  idCounter += 1;
+
+  return id;
+};
+
+const addDescendantQuery = (
+  query: AdvancedSearchQuery,
+  targetId: string,
+  newQuery: AdvancedSearchQuery,
+  preferredBool: string,
+): AdvancedSearchQuery => {
+  if (query.and || query.or) {
+    const bool = query.and ? "and" : "or";
+    const children = query[bool];
+
+    if (query.id === targetId) {
+      return {
+        id: query.id,
+        [bool]: [...children, newQuery],
+      };
+    }
+
+    const oppositeBool = (bool === "and") ? "or" : "and";
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      const updatedChild = addDescendantQuery(child, targetId, newQuery, oppositeBool);
+
+      if (updatedChild !== child) {
+        const newChildren = [...children];
+
+        newChildren[i] = updatedChild;
+
+        return {
+          id: query.id,
+          [bool]: newChildren,
+        };
+      }
+    }
+
+    return query;
+  }
+
+  if (query.id === targetId) {
+    return {
+      id: query.id,
+      [preferredBool]: [
+        {
+          ...query,
+          id: newQueryId(),
+        },
+        newQuery,
+      ],
+    };
+  }
+
+  return query;
+}
+
+const removeDescendantQuery = (
+  query: AdvancedSearchQuery,
+  targetId: string,
+  selectedQueryId: string,
+): [AdvancedSearchQuery, string] => {
+  let newSelectedQueryId = selectedQueryId;
+
+  if (query.and || query.or) {
+    const bool = query.and ? "and" : "or";
+    const children = query[bool];
+    const targetQuery = children.find((child) => child.id === targetId);
+
+    if (targetQuery) {
+      const updatedChildren = children.filter((child) => child.id !== targetId);
+
+      if (updatedChildren.length === 1) {
+        if (selectedQueryId === query.id || selectedQueryId === targetId) {
+          newSelectedQueryId = updatedChildren[0].id;
+        }
+
+        return [
+          { ...updatedChildren[0] },
+          newSelectedQueryId,
+        ];
+      }
+
+      // When a query is removed, set the selection to the parent.
+
+      // TODO: Maybe only set the selection to the parent if the current selection is a
+      // descendant of the removed query?
+
+      newSelectedQueryId = query.id;
+
+      return [
+        {
+          id: query.id,
+          [bool]: updatedChildren,
+        },
+        newSelectedQueryId,
+      ];
+    }
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      const [updatedChild, newSelectedQueryId] = removeDescendantQuery(child, targetId, selectedQueryId);
+
+      if (updatedChild !== child) {
+        const newChildren = [...children];
+
+        newChildren[i] = updatedChild;
+
+        const updatedQuery = {
+          id: query.id,
+          [bool]: newChildren,
+        };
+
+        return [updatedQuery, newSelectedQueryId];
+      }
+    }
+  }
+
+  if (query.id === targetId) {
+    if (selectedQueryId === query.id) {
+      newSelectedQueryId = null;
+    }
+
+    return [null, newSelectedQueryId];
+  }
+
+  return [query, selectedQueryId];
+}
+
+const findDescendantQuery = (
+  query: AdvancedSearchQuery,
+  targetId: string
+): AdvancedSearchQuery => {
+  if (query.id === targetId) {
+    return query;
+  }
+
+  if (query.and || query.or) {
+    const bool = query.and ? "and" : "or";
+    const children = query[bool];
+    const targetQuery = children.find((child) => child.id === targetId);
+
+    if (targetQuery) {
+      return targetQuery;
+    }
+
+    // FIXME
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      const targetQuery = findDescendantQuery(child, targetId);
+
+      if (targetQuery) {
+        return targetQuery;
+      }
+    }
+  }
+
+  return null;
+}
+
+const getDefaultBooleanOperator = (builderName: string) => {
+  return (builderName === "include" ? "and" : "or");
+}
+
+const handleAddCustomListEditorAdvSearchQuery = (
+  state: CustomListEditorState,
+  action
+): CustomListEditorState => {
+  return produce(state, (draftState) => {
+    const {
+      builderName,
+      query,
+    } = action;
+
+    const builder = draftState.searchParams.advanced[builderName];
+
+    const {
+      query: currentQuery,
+      selectedQueryId,
+    } = builder;
+
+    const newQuery = {
+      ...query,
+      id: newQueryId(),
+    };
+
+    if (!currentQuery) {
+      // If the initial query is an OR, don't select it. This allows additional ORs to be ANDed
+      // with the initial OR, instead of being added inside the OR.
+
+      builder.query = newQuery;
+      builder.selectedQueryId = newQuery.or ? null : newQuery.id;
+    }
+    else if (!selectedQueryId) {
+      // Now create an AND, add the initial query and the new query to it, and select it.
+
+      const id = newQueryId();
+
+      builder.query = {
+        id,
+        and: [
+          currentQuery,
+          newQuery,
+        ],
+      };
+
+      builder.selectedQueryId = id;
+    }
+    else {
+      builder.query = addDescendantQuery(
+        currentQuery,
+        selectedQueryId || currentQuery.id,
+        newQuery,
+        getDefaultBooleanOperator(builderName),
+      );
+    }
+  });
+};
+
+const handleUpdateCustomListEditorAdvSearchQuery = (
+  state: CustomListEditorState,
+  action
+): CustomListEditorState => {
+  return produce(state, (draftState) => {
+    const {
+      builderName,
+      query,
+    } = action;
+
+    const builder = draftState.searchParams.advanced[builderName];
+
+    builder.query = query;
+  });
+};
+
+const handleMoveCustomListEditorAdvSearchQuery = (
+  state: CustomListEditorState,
+  action
+): CustomListEditorState => {
+  return produce(state, (draftState) => {
+    const {
+      builderName,
+      id,
+      targetId,
+    } = action;
+
+    const builder = draftState.searchParams.advanced[builderName];
+
+    console.log(`${id} -> ${targetId}`);
+
+    const {
+      query: currentQuery,
+      selectedQueryId,
+    } = builder;
+
+    const query = findDescendantQuery(currentQuery, id);
+
+    const newQuery = {
+      ...query,
+      id: newQueryId(),
+    };
+
+    // FIXME: IF a boolean has two filters, and one is dropped on the other, this results in
+    // the boolean operator being swapped. Removing first, then adding, fixes this, but then
+    // if a boolean has two filters, and one is dropped onto the parent, it disappears.
+
+    const afterAddQuery = addDescendantQuery(
+      currentQuery,
+      targetId,
+      newQuery,
+      getDefaultBooleanOperator(builderName),
+    );
+
+    const [afterRemoveQuery] = removeDescendantQuery(afterAddQuery, id, selectedQueryId);
+
+    builder.query = afterRemoveQuery;
+    builder.selectedQueryId = targetId;
+  });
+};
+
+const handleRemoveCustomListEditorAdvSearchQuery = (
+  state: CustomListEditorState,
+  action
+): CustomListEditorState => {
+  return produce(state, (draftState) => {
+    const {
+      builderName,
+      id,
+    } = action;
+
+    const builder = draftState.searchParams.advanced[builderName];
+
+    const {
+      query: currentQuery,
+      selectedQueryId,
+    } = builder;
+
+    const [afterRemoveQuery, newSelectedQueryId] = removeDescendantQuery(currentQuery, id, selectedQueryId);
+
+    builder.query = afterRemoveQuery;
+    builder.selectedQueryId = newSelectedQueryId;
+  });
+};
+
+const handleSelectCustomListEditorAdvSearchQuery = (
+  state: CustomListEditorState,
+  action
+): CustomListEditorState => {
+  return produce(state, (draftState) => {
+    const {
+      builderName,
+      id,
+    } = action;
+
+    const builder = draftState.searchParams.advanced[builderName];
+
+    builder.selectedQueryId = id;
+  });
+};
+
 const bookToEntry = (book) => ({
   id: book.id,
   title: book.title,
@@ -677,6 +1038,16 @@ export default (
       return handleToggleCustomListEditorCollection(state, action);
     case ActionCreator.UPDATE_CUSTOM_LIST_EDITOR_SEARCH_PARAM:
       return handleUpdateCustomListEditorSearchParam(state, action);
+    case ActionCreator.ADD_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY:
+      return handleAddCustomListEditorAdvSearchQuery(state, action);
+    case ActionCreator.UPDATE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY:
+      return handleUpdateCustomListEditorAdvSearchQuery(state, action);
+    case ActionCreator.MOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY:
+      return handleMoveCustomListEditorAdvSearchQuery(state, action);
+    case ActionCreator.REMOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY:
+      return handleRemoveCustomListEditorAdvSearchQuery(state, action);
+    case ActionCreator.SELECT_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY:
+      return handleSelectCustomListEditorAdvSearchQuery(state, action);
     case ActionCreator.ADD_CUSTOM_LIST_EDITOR_ENTRY:
       return handleAddCustomListEditorEntry(state, action);
     case ActionCreator.ADD_ALL_CUSTOM_LIST_EDITOR_ENTRIES:

@@ -1,4 +1,5 @@
 import {
+  AdvancedSearchQuery,
   BookData,
   ComplaintsData,
   GenreTree,
@@ -39,6 +40,7 @@ import {
   getCustomListEditorFormData,
   getCustomListEditorSearchUrl,
 } from "./reducers/customListEditor";
+import { string } from "prop-types";
 
 /** Create redux actions to be dispatched by connected components, mostly
     to make requests to the server. */
@@ -124,6 +126,16 @@ export default class ActionCreator extends BaseActionCreator {
     "TOGGLE_CUSTOM_LIST_EDITOR_COLLECTION";
   static readonly UPDATE_CUSTOM_LIST_EDITOR_SEARCH_PARAM =
     "UPDATE_CUSTOM_LIST_EDITOR_SEARCH_PARAM";
+  static readonly ADD_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY =
+    "ADD_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY";
+  static readonly UPDATE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY =
+    "UPDATE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY";
+  static readonly MOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY =
+    "MOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY";
+  static readonly REMOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY =
+    "REMOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY";
+  static readonly SELECT_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY =
+    "SELECT_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY";
   static readonly ADD_CUSTOM_LIST_EDITOR_ENTRY = "ADD_CUSTOM_LIST_EDITOR_ENTRY";
   static readonly ADD_ALL_CUSTOM_LIST_EDITOR_ENTRIES =
     "ADD_ALL_CUSTOM_LIST_EDITOR_ENTRIES";
@@ -911,6 +923,48 @@ export default class ActionCreator extends BaseActionCreator {
       type: ActionCreator.UPDATE_CUSTOM_LIST_EDITOR_SEARCH_PARAM,
       name,
       value,
+    };
+  }
+
+  addCustomListEditorAdvSearchQuery(builderName: string, query: AdvancedSearchQuery) {
+    console.log(query);
+    return {
+      type: ActionCreator.ADD_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
+      builderName,
+      query,
+    };
+  }
+
+  updateCustomListEditorAdvSearchQuery(builderName: string, query: AdvancedSearchQuery) {
+    return {
+      type: ActionCreator.UPDATE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
+      builderName,
+      query,
+    };
+  }
+
+  moveCustomListEditorAdvSearchQuery(builderName: string, id: string, targetId: string) {
+    return {
+      type: ActionCreator.MOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
+      builderName,
+      id,
+      targetId,
+    };
+  }
+
+  removeCustomListEditorAdvSearchQuery(builderName: string, id: string) {
+    return {
+      type: ActionCreator.REMOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
+      builderName,
+      id,
+    };
+  }
+
+  selectCustomListEditorAdvSearchQuery(builderName: string, id: string) {
+    return {
+      type: ActionCreator.SELECT_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
+      builderName,
+      id,
     };
   }
 

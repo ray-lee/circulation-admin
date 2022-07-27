@@ -6,9 +6,9 @@ import AdvancedSearchFilter from "./AdvancedSearchFilter";
 
 export interface AdvancedSearchBooleanFilterProps {
   onChange: (query: AdvancedSearchQuery) => void;
-  onMove: (id: String, targetId: String) => void;
-  onSelect?: (query: AdvancedSearchQuery) => void;
-  onRemove: (id: String) => void;
+  onMove: (id: string, targetId: string) => void;
+  onSelect?: (id: string) => void;
+  onRemove: (id: string) => void;
   query: AdvancedSearchQuery;
   selectedQueryId?: string;
 }
@@ -25,14 +25,14 @@ const renderSeparator = (query, index) => {
   );
 };
 
-export default function AdvancedSearchBooleanQuery({
+export default ({
   onChange,
   onMove,
   onSelect,
   onRemove,
   query,
   selectedQueryId,
-}: AdvancedSearchBooleanFilterProps) {
+}: AdvancedSearchBooleanFilterProps) => {
   const children = query && (query.and || query.or);
 
   if (!children) {
@@ -75,7 +75,7 @@ export default function AdvancedSearchBooleanQuery({
     event.preventDefault();
 
     if (onSelect) {
-      onSelect(query);
+      onSelect(query.id);
     }
   }
 

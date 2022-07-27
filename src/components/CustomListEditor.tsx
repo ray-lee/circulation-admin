@@ -3,6 +3,7 @@ import { Button, Panel } from "library-simplified-reusable-components";
 import { CollectionData } from "opds-web-client/lib/interfaces";
 
 import {
+  AdvancedSearchQuery,
   LanguagesData,
   LibraryData,
   CollectionData as AdminCollectionData,
@@ -46,6 +47,11 @@ type CustomListEditorProps = {
   toggleCollection?: (id: number) => void;
   updateProperty?: (name: string, value) => void;
   updateSearchParam?: (name: string, value) => void;
+  addAdvSearchQuery?: (builderName: string, query: AdvancedSearchQuery) => void;
+  updateAdvSearchQuery?: (builderName: string, query: AdvancedSearchQuery) => void;
+  moveAdvSearchQuery?: (builderName: string, id: string, targetId: string) => void;
+  removeAdvSearchQuery?: (builderName: string, id: string) => void;
+  selectAdvSearchQuery?: (builderName: string, id: string) => void;
 };
 
 const CustomListEditor = ({
@@ -75,6 +81,11 @@ const CustomListEditor = ({
   toggleCollection,
   updateProperty,
   updateSearchParam,
+  addAdvSearchQuery,
+  updateAdvSearchQuery,
+  moveAdvSearchQuery,
+  removeAdvSearchQuery,
+  selectAdvSearchQuery,
 }: CustomListEditorProps) => {
   const { collections: listCollections, name } = properties;
 
@@ -152,6 +163,11 @@ const CustomListEditor = ({
             startingTitle={startingTitle}
             library={library}
             languages={languages}
+            addAdvSearchQuery={addAdvSearchQuery}
+            updateAdvSearchQuery={updateAdvSearchQuery}
+            moveAdvSearchQuery={moveAdvSearchQuery}
+            removeAdvSearchQuery={removeAdvSearchQuery}
+            selectAdvSearchQuery={selectAdvSearchQuery}
           />
         </section>
 

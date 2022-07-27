@@ -1,8 +1,9 @@
 import * as React from "react";
 import { Panel, Form } from "library-simplified-reusable-components";
-import { LanguagesData, LibraryData } from "../interfaces";
+import { AdvancedSearchQuery, LanguagesData, LibraryData } from "../interfaces";
 import { CustomListEditorSearchParams } from "../reducers/customListEditor";
 import SearchIcon from "./icons/SearchIcon";
+import AdvancedSearch from "./AdvancedSearch";
 import EditableInput from "./EditableInput";
 
 export interface CustomListSearchProps {
@@ -13,6 +14,11 @@ export interface CustomListSearchProps {
   startingTitle?: string;
   search: () => void;
   updateSearchParam?: (name: string, value) => void;
+  addAdvSearchQuery?: (builderName: string, query: AdvancedSearchQuery) => void;
+  updateAdvSearchQuery?: (builderName: string, query: AdvancedSearchQuery) => void;
+  moveAdvSearchQuery?: (builderName: string, id: string, targetId: string) => void;
+  removeAdvSearchQuery?: (builderName: string, id: string) => void;
+  selectAdvSearchQuery?: (builderName: string, id: string) => void;
 }
 
 const CustomListSearch = ({
@@ -23,6 +29,11 @@ const CustomListSearch = ({
   startingTitle,
   updateSearchParam,
   search,
+  addAdvSearchQuery,
+  updateAdvSearchQuery,
+  moveAdvSearchQuery,
+  removeAdvSearchQuery,
+  selectAdvSearchQuery,
 }: CustomListSearchProps) => {
   React.useEffect(() => {
     if (startingTitle) {
@@ -157,14 +168,32 @@ const CustomListSearch = ({
     />
   );
 
+  const renderAdvancedSearch = (name: string) => {
+    const builder = searchParams.advanced[name];
+
+    return (
+      <AdvancedSearch
+        name={name}
+        query={builder.query}
+        selectedQueryId={builder.selectedQueryId}
+        addQuery={addAdvSearchQuery}
+        updateQuery={updateAdvSearchQuery}
+        moveQuery={moveAdvSearchQuery}
+        removeQuery={removeAdvSearchQuery}
+        selectQuery={selectAdvSearchQuery}
+      />
+    );
+  };
+
   const searchForm = (
     <Form
       onSubmit={search}
-      content={[searchBox, searchOptions]}
+      // content={[searchBox, searchOptions]}
+      content={[renderAdvancedSearch("include")]}
       buttonClass="left-align"
       buttonContent={
         <span>
-          Search
+          Update results
           <SearchIcon />
         </span>
       }

@@ -1129,6 +1129,16 @@ describe("custom list editor reducer", () => {
           terms: "foo bar baz",
           sort: "title",
           language: "eng",
+          advanced: {
+            include: {
+              query: null,
+              selectedQueryId: null,
+            },
+            exclude: {
+              query: null,
+              selectedQueryId: null,
+            },
+          },
         },
       };
 
@@ -1148,6 +1158,16 @@ describe("custom list editor reducer", () => {
           terms: "foo bar baz",
           sort: "title",
           language: "eng",
+          advanced: {
+            include: {
+              query: null,
+              selectedQueryId: null,
+            },
+            exclude: {
+              query: null,
+              selectedQueryId: null,
+            },
+          },
         },
       };
 
@@ -1167,6 +1187,16 @@ describe("custom list editor reducer", () => {
           terms: "foo bar baz",
           sort: null,
           language: "eng",
+          advanced: {
+            include: {
+              query: null,
+              selectedQueryId: null,
+            },
+            exclude: {
+              query: null,
+              selectedQueryId: null,
+            },
+          },
         },
       };
 
@@ -1184,6 +1214,16 @@ describe("custom list editor reducer", () => {
           terms: "foo bar baz",
           sort: null,
           language: null,
+          advanced: {
+            include: {
+              query: null,
+              selectedQueryId: null,
+            },
+            exclude: {
+              query: null,
+              selectedQueryId: null,
+            },
+          },
         },
       };
 

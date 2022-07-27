@@ -6,13 +6,40 @@ import AdvancedSearchFilterInput from "./AdvancedSearchFilterInput";
 import AdvancedSearchFilterView from "./AdvancedSearchFilterView";
 
 export interface AdvancedSearchProps {
-  defaultBoolean: string;
+  name: string;
+  query: AdvancedSearchQuery,
+  selectedQueryId: string,
+  addQuery?: (builderName: string, query: AdvancedSearchQuery) => void;
+  updateQuery?: (builderName: string, query: AdvancedSearchQuery) => void;
+  moveQuery?: (builderName: string, id: string, targetId: string) => void;
+  removeQuery?: (builderName: string, id: string) => void;
+  selectQuery?: (builderName: string, id: string) => void;
 }
 
 export interface AdvancedSearchState {
   query?: AdvancedSearchQuery;
   selectedQueryId?: string;
 }
+
+export const fields = [
+  { name: "genre", label: "genre" },
+  // { name: "subject", label: "subject" },
+  // { name: "publication date", label: "publication date" },
+  { name: "language", label: "language" },
+  { name: "audience", label: "audience" },
+  { name: "author", label: "author" },
+  { name: "title", label: "title" },
+];
+
+export const operators = [
+  { name: "eq", label: "equals", symbol: "=" },
+  { name: "contains", label: "contains", symbol: ":" },
+  { name: "neq", label: "does not equal", symbol: "≠" },
+  { name: "gt", label: "is greater than", symbol: ">" },
+  { name: "gte", label: "is greater than or equals", symbol: "≥" },
+  { name: "lt", label: "is less than", symbol: "<" },
+  { name: "lte", label: "is less than or equals", symbol: "≤" },
+];
 
 let idCounter = 0;
 
@@ -31,7 +58,7 @@ export default class AdvancedSearch extends React.Component<
   constructor(props: AdvancedSearchProps) {
     super(props);
 
-    const id = newId();
+    // const id = newId();
 
     this.state = {
       // query: {
@@ -141,7 +168,7 @@ export default class AdvancedSearch extends React.Component<
     query: AdvancedSearchQuery,
     targetId: string,
     newQuery: AdvancedSearchQuery,
-    preferredBool: string = this.props.defaultBoolean,
+    preferredBool: string = "and",
   ): AdvancedSearchQuery {
     if (query.and || query.or) {
       const bool = query.and ? "and" : "or";
@@ -288,24 +315,30 @@ export default class AdvancedSearch extends React.Component<
 
   render(): JSX.Element {
     const {
+      name,
       query,
       selectedQueryId,
-    } = this.state;
+      addQuery,
+      updateQuery,
+      moveQuery,
+      removeQuery,
+      selectQuery,
+    } = this.props;
 
     console.log(query);
 
     return (
       <DndProvider backend={HTML5Backend}>
         <div className="advanced-search">
-          <AdvancedSearchFilterInput onAdd={this.handleQueryAdd} />
+          <AdvancedSearchFilterInput onAdd={(query) => addQuery?.(name, query)} />
 
           <AdvancedSearchFilterView
-            onChange={this.handleQueryChange}
-            onMove={this.handleQueryMove}
-            onRemove={this.handleQueryRemove}
-            onSelect={this.handleQuerySelect}
             query={query}
             selectedQueryId={selectedQueryId}
+            onChange={(query) => updateQuery?.(name, query)}
+            onMove={(id, targetId) => moveQuery(name, id, targetId)}
+            onRemove={(id) => removeQuery(name, id)}
+            onSelect={(id) => selectQuery(name, id)}
           />
         </div>
       </DndProvider>

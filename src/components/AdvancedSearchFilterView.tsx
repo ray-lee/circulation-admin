@@ -5,9 +5,9 @@ import AdvancedSearchFilter from "./AdvancedSearchFilter";
 
 export interface AdvancedSearchFilterViewProps {
   onChange: (query: AdvancedSearchQuery) => void;
-  onMove: (id: String, targetId: String) => void;
-  onSelect?: (query: AdvancedSearchQuery) => void;
-  onRemove: (id: String) => void;
+  onMove: (id: string, targetId: string) => void;
+  onSelect?: (id: string) => void;
+  onRemove: (id: string) => void;
   query: AdvancedSearchQuery;
   selectedQueryId?: string;
 }
