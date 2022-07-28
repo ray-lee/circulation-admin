@@ -452,12 +452,13 @@ export interface AnnouncementData {
 }
 
 export interface AdvancedSearchQuery {
-  id: string;
+  id?: string;
   key?: string;
   op?: string;
   value?: string;
   and?: AdvancedSearchQuery[];
   or?: AdvancedSearchQuery[];
+  not?: AdvancedSearchQuery;
 }
 
 export interface AdvancedSearchData {

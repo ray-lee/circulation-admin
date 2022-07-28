@@ -925,8 +925,10 @@ export default class ActionCreator extends BaseActionCreator {
     };
   }
 
-  addCustomListEditorAdvSearchQuery(builderName: string, query: AdvancedSearchQuery) {
-    console.log(query);
+  addCustomListEditorAdvSearchQuery(
+    builderName: string,
+    query: AdvancedSearchQuery
+  ) {
     return {
       type: ActionCreator.ADD_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
       builderName,
@@ -934,7 +936,10 @@ export default class ActionCreator extends BaseActionCreator {
     };
   }
 
-  updateCustomListEditorAdvSearchQuery(builderName: string, query: AdvancedSearchQuery) {
+  updateCustomListEditorAdvSearchQuery(
+    builderName: string,
+    query: AdvancedSearchQuery
+  ) {
     return {
       type: ActionCreator.UPDATE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
       builderName,
@@ -942,7 +947,11 @@ export default class ActionCreator extends BaseActionCreator {
     };
   }
 
-  moveCustomListEditorAdvSearchQuery(builderName: string, id: string, targetId: string) {
+  moveCustomListEditorAdvSearchQuery(
+    builderName: string,
+    id: string,
+    targetId: string
+  ) {
     return {
       type: ActionCreator.MOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
       builderName,
@@ -1006,7 +1015,6 @@ export default class ActionCreator extends BaseActionCreator {
   saveCustomListEditor(library: string) {
     return (dispatch, getState) => {
       const { customListEditor } = getState().editor;
-
       const { id } = customListEditor;
 
       return dispatch(
@@ -1028,10 +1036,11 @@ export default class ActionCreator extends BaseActionCreator {
   executeCustomListEditorSearch(library: string) {
     return (dispatch, getState) => {
       const { customListEditor } = getState().editor;
-
       const url = getCustomListEditorSearchUrl(customListEditor, library);
-console.log(url);
-      return dispatch(this.fetchCollection(url));
+
+      if (url) {
+        return dispatch(this.fetchCollection(url));
+      }
     };
   }
 

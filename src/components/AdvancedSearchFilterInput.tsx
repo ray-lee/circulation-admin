@@ -5,14 +5,14 @@ import { fields, operators } from "./AdvancedSearchBuilder";
 import EditableInput from "./EditableInput";
 
 export interface AdvancedSearchFilterInputProps {
-  name: string,
+  name: string;
   onAdd: (query: AdvancedSearchQuery) => void;
 }
 
-export default ({
+export default function AdvancedSearchFilterInput({
   name: builderName,
   onAdd,
-}: AdvancedSearchFilterInputProps) => {
+}: AdvancedSearchFilterInputProps) {
   const opSelect = React.useRef(null);
   const valueInput = React.useRef(null);
 
@@ -35,7 +35,6 @@ export default ({
   const addFilter = () => {
     if (filterKey && filterOp && filterValue.trim()) {
       onAdd?.({
-        id: null,
         key: filterKey,
         op: filterOp,
         value: filterValue,
@@ -50,28 +49,24 @@ export default ({
     event.preventDefault();
 
     addFilter();
-  }
+  };
 
   return (
     <form className="advanced-search-filter-input">
-      Filter on:
-
+      Add filter on:
       <div className="filter-key-options">
-        {
-          fields.map(({ value, label }) => (
-            <EditableInput
-              key={value}
-              type="radio"
-              name={`${builderName}-filter-key`}
-              checked={value === filterKey ? true : false}
-              label={label}
-              value={value}
-              onChange={handleKeyChange}
-            />
-          ))
-        }
+        {fields.map(({ value, label }) => (
+          <EditableInput
+            key={value}
+            type="radio"
+            name={`${builderName}-filter-key`}
+            checked={value === filterKey ? true : false}
+            label={label}
+            value={value}
+            onChange={handleKeyChange}
+          />
+        ))}
       </div>
-
       <div className="filter-op-value-inputs">
         <EditableInput
           elementType="select"
@@ -80,17 +75,15 @@ export default ({
           ref={opSelect}
           value={filterOp}
         >
-          {
-            operators.map(({value, label}) => (
-              <option
-                aria-selected={value === filterOp}
-                key={value}
-                value={value}
-              >
-                {label}
-              </option>
-            ))
-          }
+          {operators.map(({ value, label }) => (
+            <option
+              aria-selected={value === filterOp}
+              key={value}
+              value={value}
+            >
+              {label}
+            </option>
+          ))}
         </EditableInput>
 
         <EditableInput

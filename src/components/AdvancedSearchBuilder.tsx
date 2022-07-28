@@ -29,6 +29,7 @@ export const fields = [
 export const operators = [
   { value: "eq", label: "equals", symbol: "=" },
   { value: "contains", label: "contains", symbol: ":" },
+  { value: "regex", label: "matches regex", symbol: "~" },
   { value: "neq", label: "does not equal", symbol: "≠" },
   { value: "gt", label: "is greater than", symbol: ">" },
   { value: "gte", label: "is greater than or equals", symbol: "≥" },
@@ -36,7 +37,7 @@ export const operators = [
   { value: "lte", label: "is less than or equals", symbol: "≤" },
 ];
 
-export default ({
+export default function AdvancedSearchBuilder({
   name,
   query,
   selectedQueryId,
@@ -45,22 +46,24 @@ export default ({
   moveQuery,
   removeQuery,
   selectQuery,
-}: AdvancedSearchBuilderProps) => (
-  <DndProvider backend={HTML5Backend}>
-    <div className="advanced-search">
-      <AdvancedSearchFilterInput
-        name={name}
-        onAdd={(query) => addQuery?.(name, query)}
-      />
+}: AdvancedSearchBuilderProps) {
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <div className="advanced-search">
+        <AdvancedSearchFilterInput
+          name={name}
+          onAdd={(query) => addQuery?.(name, query)}
+        />
 
-      <AdvancedSearchFilterViewer
-        query={query}
-        selectedQueryId={selectedQueryId}
-        onChange={(query) => updateQuery?.(name, query)}
-        onMove={(id, targetId) => moveQuery?.(name, id, targetId)}
-        onRemove={(id) => removeQuery?.(name, id)}
-        onSelect={(id) => selectQuery?.(name, id)}
-      />
-    </div>
-  </DndProvider>
-);
+        <AdvancedSearchFilterViewer
+          query={query}
+          selectedQueryId={selectedQueryId}
+          onChange={(query) => updateQuery?.(name, query)}
+          onMove={(id, targetId) => moveQuery?.(name, id, targetId)}
+          onRemove={(id) => removeQuery?.(name, id)}
+          onSelect={(id) => selectQuery?.(name, id)}
+        />
+      </div>
+    </DndProvider>
+  );
+}

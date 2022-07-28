@@ -113,6 +113,64 @@
   }
 }
 
+.query-viewer {
+  position: relative;
+
+  > button {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 32px;
+    z-index: 1;
+    font-family: monospace;
+  }
+
+  button {
+    height: 32px;
+    border: 1px solid $medium-gray;
+    border-radius: 5px;
+    background: white;
+    color: black;
+    font-size: 14px;
+  }
+
+  > div {
+    header {
+      margin-bottom: 10px;
+
+      button {
+        margin-right: 3px;
+
+        &:disabled {
+          border-color: black;
+        }
+      }
+    }
+
+    position: absolute;
+    right: -5px;
+    top: -5px;
+    width: 50%;
+    border: 1px solid $medium-gray;
+    border-radius: 5px;
+    padding: 10px;
+    background: white;
+  }
+
+  pre, code {
+    margin: 0;
+    border: none;
+    padding: 0;
+    background-color: transparent;
+    font-family: monospace;
+    font-size: 14px;
+  }
+
+  a {
+    word-break: break-all;
+  }
+}
+
 .search-titles {
   width: 100%;
   .panel {

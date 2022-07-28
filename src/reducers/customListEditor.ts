@@ -302,13 +302,18 @@ const validatedHandler = (handler) => (state: CustomListEditorState, action?) =>
 /**
  * Generates the initial state for a previously saved list.
  *
- * @param id   The id of the list.
- * @param data The data received from a call to the custom_lists endpoint in the CM. This contains
- *             basic information about all the lists in the library. If a list with the given id
- *             exists in the data, the initial state is populated with the data for that list.
- * @returns    The initial state for the list.
+ * @param id    The id of the list.
+ * @param data  The data received from a call to the custom_lists endpoint in the CM. This contains
+ *              basic information about all the lists in the library. If a list with the given id
+ *              exists in the data, the initial state is populated with the data for that list.
+ * @param state The current state.
+ * @returns     The next state, representing the initial state for the list.
  */
-const initialStateForList = (id: number, data): CustomListEditorState => {
+const initialStateForList = (
+  id: number,
+  data,
+  state: CustomListEditorState
+): CustomListEditorState => {
   let customList = null;
   let error = null;
 
@@ -334,6 +339,9 @@ const initialStateForList = (id: number, data): CustomListEditorState => {
 
       draftState.entries.baselineTotalCount = customList.entry_count;
     }
+
+    // Carry over the search parameters from the previous state.
+    draftState.searchParams = state.searchParams;
 
     draftState.error = error;
   });
@@ -394,7 +402,7 @@ const handleCustomListEditorOpen = (
 ): CustomListEditorState => {
   const { id, data } = action;
 
-  return initialStateForList(id ? parseInt(id, 10) : null, data);
+  return initialStateForList(id ? parseInt(id, 10) : null, data, state);
 };
 
 /**
@@ -416,7 +424,7 @@ const handleCustomListsLoad = (
   const { id } = state;
   const { data } = action;
 
-  return initialStateForList(id, data);
+  return initialStateForList(id, data, state);
 };
 
 /**
@@ -544,7 +552,7 @@ const addDescendantQuery = (
   query: AdvancedSearchQuery,
   targetId: string,
   newQuery: AdvancedSearchQuery,
-  preferredBool: string,
+  preferredBool: string
 ): AdvancedSearchQuery => {
   if (query.and || query.or) {
     const bool = query.and ? "and" : "or";
@@ -557,11 +565,16 @@ const addDescendantQuery = (
       };
     }
 
-    const oppositeBool = (bool === "and") ? "or" : "and";
+    const oppositeBool = bool === "and" ? "or" : "and";
 
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
-      const updatedChild = addDescendantQuery(child, targetId, newQuery, oppositeBool);
+      const updatedChild = addDescendantQuery(
+        child,
+        targetId,
+        newQuery,
+        oppositeBool
+      );
 
       if (updatedChild !== child) {
         const newChildren = [...children];
@@ -597,7 +610,7 @@ const addDescendantQuery = (
 const removeDescendantQuery = (
   query: AdvancedSearchQuery,
   targetId: string,
-  selectedQueryId: string,
+  selectedQueryId: string
 ): [AdvancedSearchQuery, string] => {
   let newSelectedQueryId = selectedQueryId;
 
@@ -614,10 +627,7 @@ const removeDescendantQuery = (
           newSelectedQueryId = updatedChildren[0].id;
         }
 
-        return [
-          { ...updatedChildren[0] },
-          newSelectedQueryId,
-        ];
+        return [{ ...updatedChildren[0] }, newSelectedQueryId];
       }
 
       // When a query is removed, set the selection to the parent.
@@ -638,7 +648,11 @@ const removeDescendantQuery = (
 
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
-      const [updatedChild, newSelectedQueryId] = removeDescendantQuery(child, targetId, selectedQueryId);
+      const [updatedChild, newSelectedQueryId] = removeDescendantQuery(
+        child,
+        targetId,
+        selectedQueryId
+      );
 
       if (updatedChild !== child) {
         const newChildren = [...children];
@@ -698,7 +712,7 @@ const findDescendantQuery = (
 };
 
 const getDefaultBooleanOperator = (builderName: string) => {
-  return (builderName === "include" ? "and" : "or");
+  return builderName === "include" ? "and" : "or";
 };
 
 const handleAddCustomListEditorAdvSearchQuery = (
@@ -706,17 +720,11 @@ const handleAddCustomListEditorAdvSearchQuery = (
   action
 ): CustomListEditorState => {
   return produce(state, (draftState) => {
-    const {
-      builderName,
-      query,
-    } = action;
+    const { builderName, query } = action;
 
     const builder = draftState.searchParams.advanced[builderName];
 
-    const {
-      query: currentQuery,
-      selectedQueryId,
-    } = builder;
+    const { query: currentQuery, selectedQueryId } = builder;
 
     const newQuery = {
       ...query,
@@ -729,28 +737,23 @@ const handleAddCustomListEditorAdvSearchQuery = (
 
       builder.query = newQuery;
       builder.selectedQueryId = newQuery.or ? null : newQuery.id;
-    }
-    else if (!selectedQueryId) {
+    } else if (!selectedQueryId) {
       // Now create an AND, add the initial query and the new query to it, and select it.
 
       const id = newQueryId();
 
       builder.query = {
         id,
-        and: [
-          currentQuery,
-          newQuery,
-        ],
+        and: [currentQuery, newQuery],
       };
 
       builder.selectedQueryId = id;
-    }
-    else {
+    } else {
       builder.query = addDescendantQuery(
         currentQuery,
         selectedQueryId || currentQuery.id,
         newQuery,
-        getDefaultBooleanOperator(builderName),
+        getDefaultBooleanOperator(builderName)
       );
     }
   });
@@ -761,10 +764,7 @@ const handleUpdateCustomListEditorAdvSearchQuery = (
   action
 ): CustomListEditorState => {
   return produce(state, (draftState) => {
-    const {
-      builderName,
-      query,
-    } = action;
+    const { builderName, query } = action;
 
     const builder = draftState.searchParams.advanced[builderName];
 
@@ -777,20 +777,13 @@ const handleMoveCustomListEditorAdvSearchQuery = (
   action
 ): CustomListEditorState => {
   return produce(state, (draftState) => {
-    const {
-      builderName,
-      id,
-      targetId,
-    } = action;
+    const { builderName, id, targetId } = action;
 
     const builder = draftState.searchParams.advanced[builderName];
 
     console.log(`${id} -> ${targetId}`);
 
-    const {
-      query: currentQuery,
-      selectedQueryId,
-    } = builder;
+    const { query: currentQuery, selectedQueryId } = builder;
 
     const query = findDescendantQuery(currentQuery, id);
 
@@ -807,10 +800,14 @@ const handleMoveCustomListEditorAdvSearchQuery = (
       currentQuery,
       targetId,
       newQuery,
-      getDefaultBooleanOperator(builderName),
+      getDefaultBooleanOperator(builderName)
     );
 
-    const [afterRemoveQuery] = removeDescendantQuery(afterAddQuery, id, selectedQueryId);
+    const [afterRemoveQuery] = removeDescendantQuery(
+      afterAddQuery,
+      id,
+      selectedQueryId
+    );
 
     builder.query = afterRemoveQuery;
     builder.selectedQueryId = targetId;
@@ -822,19 +819,17 @@ const handleRemoveCustomListEditorAdvSearchQuery = (
   action
 ): CustomListEditorState => {
   return produce(state, (draftState) => {
-    const {
-      builderName,
-      id,
-    } = action;
+    const { builderName, id } = action;
 
     const builder = draftState.searchParams.advanced[builderName];
 
-    const {
-      query: currentQuery,
-      selectedQueryId,
-    } = builder;
+    const { query: currentQuery, selectedQueryId } = builder;
 
-    const [afterRemoveQuery, newSelectedQueryId] = removeDescendantQuery(currentQuery, id, selectedQueryId);
+    const [afterRemoveQuery, newSelectedQueryId] = removeDescendantQuery(
+      currentQuery,
+      id,
+      selectedQueryId
+    );
 
     builder.query = afterRemoveQuery;
     builder.selectedQueryId = newSelectedQueryId;
@@ -846,10 +841,7 @@ const handleSelectCustomListEditorAdvSearchQuery = (
   action
 ): CustomListEditorState => {
   return produce(state, (draftState) => {
-    const {
-      builderName,
-      id,
-    } = action;
+    const { builderName, id } = action;
 
     const builder = draftState.searchParams.advanced[builderName];
 
@@ -1103,68 +1095,84 @@ export const getCustomListEditorFormData = (
   return data;
 };
 
-const buildAdvSearchQueryString = (
-  include: AdvancedSearchQuery,
-  exclude: AdvancedSearchQuery,
-): string => {
-  let query;
+export const buildAdvSearchQuery = (
+  searchParams: CustomListEditorSearchParams
+): AdvancedSearchQuery => {
+  const { include, exclude } = searchParams.advanced;
 
-  if (exclude) {
-    query = {
+  const includeQuery = include.query;
+  const excludeQuery = exclude.query;
+
+  if (excludeQuery) {
+    const notQuery = {
+      not: {
+        ...excludeQuery,
+      },
+    };
+
+    if (!includeQuery) {
+      return notQuery;
+    }
+
+    return {
       and: [
         {
-          ...include,
+          ...includeQuery,
         },
-        {
-          not: {
-            ...exclude,
-          },
-        },
+        notQuery,
       ],
     };
   }
-  else {
-    query = include;
+
+  if (includeQuery) {
+    return includeQuery;
   }
-console.log(query);
-  return JSON.stringify({ query }, (key, value) => (key === "id" ? undefined : value));
+
+  return null;
 };
 
-/**
- * Converts search parameters in a custom list editor state to a search query URL.
- *
- * @param state   The custom list editor state
- * @param library The short name of the library that contains the list being edited
- * @returns
- */
-export const getCustomListEditorSearchUrl = (
-  state: CustomListEditorState,
+export const buildAdvSearchQueryString = (
+  searchParams: CustomListEditorSearchParams,
+  indentSpaces: number = 0,
+  encode: boolean = true
+): string => {
+  const query = buildAdvSearchQuery(searchParams);
+
+  if (!query) {
+    return "";
+  }
+
+  const queryString = JSON.stringify(
+    { query },
+    (key, value) => {
+      if (key === "id") {
+        return undefined;
+      }
+
+      if (key === "op" && value === "eq") {
+        return undefined;
+      }
+
+      return value;
+    },
+    indentSpaces
+  );
+
+  return encode ? encodeURIComponent(queryString) : queryString;
+};
+
+export const buildSearchUrl = (
+  searchParams: CustomListEditorSearchParams,
   library: string
 ): string => {
   const {
     entryPoint,
     terms,
     sort,
-    language,
-    advanced,
-  } = state.searchParams;
-
-  const {
-    include,
-    exclude,
-  } = advanced;
+    // language,
+  } = searchParams;
 
   const queryParams = [];
-
-  if (include.query || exclude.query) {
-    const query = buildAdvSearchQueryString(include.query, exclude.query);
-
-    queryParams.push("search_type=json");
-    queryParams.push(`q=${encodeURIComponent(query)}`)
-  }
-  else {
-    queryParams.push(`q=${encodeURIComponent(terms)}`);
-  }
 
   if (entryPoint !== "All") {
     queryParams.push(`entrypoint=${encodeURIComponent(entryPoint)}`);
@@ -1178,6 +1186,37 @@ export const getCustomListEditorSearchUrl = (
   //   queryParams.push(`language=${encodeURIComponent(language)}`);
   // }
 
+  const advSearchQuery = buildAdvSearchQueryString(searchParams);
+
+  if (advSearchQuery) {
+    queryParams.push("search_type=json");
+    queryParams.push(`q=${advSearchQuery}`);
+  } else {
+    queryParams.push(`q=${encodeURIComponent(terms)}`);
+  }
+
   return `/${library}/search?${queryParams.join("&")}`;
 };
 
+/**
+ * Converts search parameters in a custom list editor state to a search query URL.
+ *
+ * @param state   The custom list editor state
+ * @param library The short name of the library that contains the list being edited
+ * @returns       The URL, or null if the custom list editor state does not contain either query
+ *                terms or an advanced search query.
+ */
+export const getCustomListEditorSearchUrl = (
+  state: CustomListEditorState,
+  library: string
+): string => {
+  const { searchParams } = state;
+
+  const { terms, advanced } = searchParams;
+
+  if (terms || advanced.include.query || advanced.exclude.query) {
+    return buildSearchUrl(searchParams, library);
+  }
+
+  return null;
+};
