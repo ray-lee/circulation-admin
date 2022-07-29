@@ -56,7 +56,7 @@ export default function AdvancedSearchBooleanFilter({
     event.stopPropagation();
     event.preventDefault();
 
-    if (event.key === "Space") {
+    if (event.key === " ") {
       onSelect?.(query.id);
     }
   };
