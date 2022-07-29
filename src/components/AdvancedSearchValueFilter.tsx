@@ -1,29 +1,35 @@
 import * as React from "react";
 import classNames from "classnames";
-import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget, useDrag, useDrop } from "react-dnd";
+import {
+  ConnectDragPreview,
+  ConnectDragSource,
+  ConnectDropTarget,
+  useDrag,
+  useDrop,
+} from "react-dnd";
 import { AdvancedSearchQuery } from "../interfaces";
 import { operators } from "./AdvancedSearchBuilder";
 
 export interface AdvancedSearchValueFilterProps {
-  onMove: (id: string, targetId: string) => void;
-  onRemove: (id: string) => void;
-  onSelect?: (id: string) => void;
   query: AdvancedSearchQuery;
   selected?: boolean;
+  onMove: (id: string, targetId: string) => void;
+  onRemove: (id: string) => void;
+  onSelect: (id: string) => void;
 }
 
 function getOpSymbol(value) {
-  const op = operators.find((candidate) => candidate.value === value);
+  const op = operators.find((op) => op.value === value);
 
-  return (op?.symbol || value);
+  return op?.symbol || value;
 }
 
 export default ({
+  query,
+  selected,
   onMove,
   onRemove,
   onSelect,
-  query,
-  selected,
 }: AdvancedSearchValueFilterProps) => {
   if (!query) {
     return null;
@@ -33,8 +39,15 @@ export default ({
     event.stopPropagation();
     event.preventDefault();
 
-    if (onSelect) {
-      onSelect(query.id);
+    onSelect?.(query.id);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (event.key === "Space") {
+      onSelect?.(query.id);
     }
   };
 
@@ -42,7 +55,7 @@ export default ({
     event.stopPropagation();
     event.preventDefault();
 
-    onRemove(query.id);
+    onRemove?.(query.id);
   };
 
   const [, drag]: [{}, ConnectDragSource, ConnectDragPreview] = useDrag(
@@ -50,18 +63,21 @@ export default ({
       type: "filter",
       item: {
         id: query.id,
-      }
+      },
     },
-    [query.id],
+    [query.id]
   );
 
-  const [dropProps, drop]: [{ canDrop: boolean; isOver: boolean; }, ConnectDropTarget] = useDrop(
+  const [dropProps, drop]: [
+    { canDrop: boolean; isOver: boolean },
+    ConnectDropTarget
+  ] = useDrop(
     {
       accept: "filter",
       canDrop: (item: any) => item.id !== query.id,
       drop: (item: any, monitor) => {
         if (!monitor.didDrop()) {
-          onMove(item.id, query.id);
+          onMove?.(item.id, query.id);
 
           return {
             id: query.id,
@@ -71,16 +87,12 @@ export default ({
       collect: (monitor) => ({
         canDrop: !!monitor.canDrop(),
         isOver: !!monitor.isOver(),
-      })
+      }),
     },
-    [query.id, onMove],
+    [query.id, onMove]
   );
 
-  const {
-    key,
-    op,
-    value,
-  } = query;
+  const { key, op, value } = query;
 
   const className = classNames({
     "advanced-search-value-filter": true,
@@ -93,10 +105,14 @@ export default ({
       aria-selected={selected}
       className={className}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
       ref={(node) => drag(drop(node))}
       role="treeitem"
+      tabIndex={0}
     >
-      <span>{key} {getOpSymbol(op)} {value}</span>
+      <span>
+        {key} {getOpSymbol(op)} {value}
+      </span>
       <button onClick={handleRemoveButtonClick}>×</button>
     </div>
   );

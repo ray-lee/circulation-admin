@@ -91,6 +91,9 @@ export interface CustomListEditorTrackedProperties {
   current: CustomListEditorProperties;
 }
 
+/**
+ * Data that describes an advanced search builder.
+ */
 export interface CustomListEditorAdvancedSearchBuilderData {
   /**
    * The ID of the currently selected advanced search query. This could be the root query, or any
@@ -104,8 +107,20 @@ export interface CustomListEditorAdvancedSearchBuilderData {
   query: AdvancedSearchQuery;
 }
 
+/**
+ * Data desribing the advanced search builders on the custom list editor.
+ */
 export interface CustomListEditorAdvancedSearchBuilders {
+  /**
+   * Describes the advanced search builder that builds the query to find books to include in the
+   * list.
+   */
   include: CustomListEditorAdvancedSearchBuilderData;
+
+  /**
+   * Describes the advanced search builder that builds the query to find books to exclude from the
+   * list.
+   */
   exclude: CustomListEditorAdvancedSearchBuilderData;
 }
 
@@ -609,75 +624,71 @@ const addDescendantQuery = (
 
 const removeDescendantQuery = (
   query: AdvancedSearchQuery,
-  targetId: string,
-  selectedQueryId: string
-): [AdvancedSearchQuery, string] => {
-  let newSelectedQueryId = selectedQueryId;
+  targetId: string
+): AdvancedSearchQuery => {
+  if (query.id === targetId) {
+    return null;
+  }
 
   if (query.and || query.or) {
     const bool = query.and ? "and" : "or";
     const children = query[bool];
-    const targetQuery = children.find((child) => child.id === targetId);
+    const updatedChildren = children.filter((child) => child.id !== targetId);
 
-    if (targetQuery) {
-      const updatedChildren = children.filter((child) => child.id !== targetId);
-
+    if (updatedChildren.length !== children.length) {
       if (updatedChildren.length === 1) {
-        if (selectedQueryId === query.id || selectedQueryId === targetId) {
-          newSelectedQueryId = updatedChildren[0].id;
-        }
-
-        return [{ ...updatedChildren[0] }, newSelectedQueryId];
+        return { ...updatedChildren[0] };
       }
 
-      // When a query is removed, set the selection to the parent.
-
-      // TODO: Maybe only set the selection to the parent if the current selection is a
-      // descendant of the removed query?
-
-      newSelectedQueryId = query.id;
-
-      return [
-        {
-          id: query.id,
-          [bool]: updatedChildren,
-        },
-        newSelectedQueryId,
-      ];
+      return {
+        id: query.id,
+        [bool]: updatedChildren,
+      };
     }
 
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
-      const [updatedChild, newSelectedQueryId] = removeDescendantQuery(
-        child,
-        targetId,
-        selectedQueryId
-      );
+      const updatedChild = removeDescendantQuery(child, targetId);
 
       if (updatedChild !== child) {
         const newChildren = [...children];
 
         newChildren[i] = updatedChild;
 
-        const updatedQuery = {
+        return {
           id: query.id,
           [bool]: newChildren,
         };
-
-        return [updatedQuery, newSelectedQueryId];
       }
     }
   }
 
-  if (query.id === targetId) {
-    if (selectedQueryId === query.id) {
-      newSelectedQueryId = null;
-    }
+  return query;
+};
 
-    return [null, newSelectedQueryId];
+const findDescendantQueryPath = (
+  query: AdvancedSearchQuery,
+  targetId: string
+): string[] => {
+  if (query.id === targetId) {
+    return [query.id];
   }
 
-  return [query, selectedQueryId];
+  if (query.and || query.or) {
+    const bool = query.and ? "and" : "or";
+    const children = query[bool];
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      const path = findDescendantQueryPath(child, targetId);
+
+      if (path) {
+        return [query.id, ...path];
+      }
+    }
+  }
+
+  return null;
 };
 
 const findDescendantQuery = (
@@ -697,7 +708,6 @@ const findDescendantQuery = (
       return targetQuery;
     }
 
-    // FIXME
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
       const targetQuery = findDescendantQuery(child, targetId);
@@ -721,9 +731,7 @@ const handleAddCustomListEditorAdvSearchQuery = (
 ): CustomListEditorState => {
   return produce(state, (draftState) => {
     const { builderName, query } = action;
-
     const builder = draftState.searchParams.advanced[builderName];
-
     const { query: currentQuery, selectedQueryId } = builder;
 
     const newQuery = {
@@ -759,16 +767,24 @@ const handleAddCustomListEditorAdvSearchQuery = (
   });
 };
 
-const handleUpdateCustomListEditorAdvSearchQuery = (
+const handleUpdateCustomListEditorAdvSearchQueryBoolean = (
   state: CustomListEditorState,
   action
 ): CustomListEditorState => {
   return produce(state, (draftState) => {
-    const { builderName, query } = action;
-
+    const { builderName, id, bool } = action;
     const builder = draftState.searchParams.advanced[builderName];
+    const { query: currentQuery } = builder;
+    const targetQuery = findDescendantQuery(currentQuery, id);
 
-    builder.query = query;
+    if (targetQuery && !targetQuery[bool]) {
+      const oppositeBool = bool === "and" ? "or" : "and";
+      const children = targetQuery[oppositeBool];
+
+      delete targetQuery[oppositeBool];
+
+      targetQuery[bool] = children;
+    }
   });
 };
 
@@ -778,13 +794,11 @@ const handleMoveCustomListEditorAdvSearchQuery = (
 ): CustomListEditorState => {
   return produce(state, (draftState) => {
     const { builderName, id, targetId } = action;
-
     const builder = draftState.searchParams.advanced[builderName];
 
     console.log(`${id} -> ${targetId}`);
 
-    const { query: currentQuery, selectedQueryId } = builder;
-
+    const { query: currentQuery } = builder;
     const query = findDescendantQuery(currentQuery, id);
 
     const newQuery = {
@@ -792,9 +806,13 @@ const handleMoveCustomListEditorAdvSearchQuery = (
       id: newQueryId(),
     };
 
-    // FIXME: IF a boolean has two filters, and one is dropped on the other, this results in
-    // the boolean operator being swapped. Removing first, then adding, fixes this, but then
-    // if a boolean has two filters, and one is dropped onto the parent, it disappears.
+    // Note: If a boolean has two filters, and one is dropped on the other, this results in
+    // the boolean operator being swapped. A move operation is really an add followed by a remove,
+    // and this is the result of the normal rules for adding and removing queries. When a new
+    // boolean group is created by the add operation, it is set to the opposite boolean operator of
+    // the parent; and when the remove operation leaves the original parent with only one child,
+    // the remaining child (now with the opposite boolean operator of the original parent) is
+    // lifted up, and the original parent is deleted.
 
     const afterAddQuery = addDescendantQuery(
       currentQuery,
@@ -803,11 +821,7 @@ const handleMoveCustomListEditorAdvSearchQuery = (
       getDefaultBooleanOperator(builderName)
     );
 
-    const [afterRemoveQuery] = removeDescendantQuery(
-      afterAddQuery,
-      id,
-      selectedQueryId
-    );
+    const afterRemoveQuery = removeDescendantQuery(afterAddQuery, id);
 
     builder.query = afterRemoveQuery;
     builder.selectedQueryId = targetId;
@@ -820,19 +834,32 @@ const handleRemoveCustomListEditorAdvSearchQuery = (
 ): CustomListEditorState => {
   return produce(state, (draftState) => {
     const { builderName, id } = action;
-
     const builder = draftState.searchParams.advanced[builderName];
+    const { query: currentQuery } = builder;
 
-    const { query: currentQuery, selectedQueryId } = builder;
+    const afterRemoveQuery = removeDescendantQuery(currentQuery, id);
 
-    const [afterRemoveQuery, newSelectedQueryId] = removeDescendantQuery(
-      currentQuery,
-      id,
-      selectedQueryId
-    );
+    if (afterRemoveQuery !== currentQuery) {
+      builder.query = afterRemoveQuery;
 
-    builder.query = afterRemoveQuery;
-    builder.selectedQueryId = newSelectedQueryId;
+      // It is possible that removeDescendantQuery removed more than just the one query; for
+      // example, if the removed query was the child of an and/or query, and removing it left only
+      // one other child query, then the remaining child would have been lifted out of the parent,
+      // and the parent would have been deleted as well. For this reason, we can't assume that the
+      // parent of the removed query still exists; we have to find the nearest ancestor of the
+      // removed query that remains in the tree, to make that the new selected query.
+
+      const path = findDescendantQueryPath(currentQuery, id);
+
+      path.pop();
+      path.reverse();
+
+      const ancestorId = path.find((id) =>
+        findDescendantQuery(afterRemoveQuery, id)
+      );
+
+      builder.selectedQueryId = ancestorId;
+    }
   });
 };
 
@@ -842,7 +869,6 @@ const handleSelectCustomListEditorAdvSearchQuery = (
 ): CustomListEditorState => {
   return produce(state, (draftState) => {
     const { builderName, id } = action;
-
     const builder = draftState.searchParams.advanced[builderName];
 
     builder.selectedQueryId = id;
@@ -1032,8 +1058,8 @@ export default (
       return handleUpdateCustomListEditorSearchParam(state, action);
     case ActionCreator.ADD_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY:
       return handleAddCustomListEditorAdvSearchQuery(state, action);
-    case ActionCreator.UPDATE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY:
-      return handleUpdateCustomListEditorAdvSearchQuery(state, action);
+    case ActionCreator.UPDATE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY_BOOLEAN:
+      return handleUpdateCustomListEditorAdvSearchQueryBoolean(state, action);
     case ActionCreator.MOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY:
       return handleMoveCustomListEditorAdvSearchQuery(state, action);
     case ActionCreator.REMOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY:

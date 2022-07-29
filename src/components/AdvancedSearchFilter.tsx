@@ -4,36 +4,36 @@ import AdvancedSearchBooleanFilter from "./AdvancedSearchBooleanFilter";
 import AdvancedSearchValueFilter from "./AdvancedSearchValueFilter";
 
 export interface AdvancedSearchFilterProps {
-  onChange: (query: AdvancedSearchQuery) => void;
+  onBooleanChange: (id: string, bool: string) => void;
   onMove: (id: string, targetId: string) => void;
-  onSelect?: (id: string) => void;
+  onSelect: (id: string) => void;
   onRemove: (id: string) => void;
   query: AdvancedSearchQuery;
   selectedQueryId?: string;
 }
 
-export default ({
-  onChange,
+export default function AdvancedSearchFilter({
+  onBooleanChange,
   onMove,
   onSelect,
   onRemove,
   query,
   selectedQueryId,
-}: AdvancedSearchFilterProps): JSX.Element => {
-  if (query && (query.and || query.or)) {
-    return (
-      <AdvancedSearchBooleanFilter
-        onChange={onChange}
-        onMove={onMove}
-        onSelect={onSelect}
-        onRemove={onRemove}
-        query={query}
-        selectedQueryId={selectedQueryId}
-      />
-    );
-  }
-
+}: AdvancedSearchFilterProps): JSX.Element {
   if (query) {
+    if (query.and || query.or) {
+      return (
+        <AdvancedSearchBooleanFilter
+          onBooleanChange={onBooleanChange}
+          onMove={onMove}
+          onSelect={onSelect}
+          onRemove={onRemove}
+          query={query}
+          selectedQueryId={selectedQueryId}
+        />
+      );
+    }
+
     return (
       <AdvancedSearchValueFilter
         onMove={onMove}
@@ -46,4 +46,4 @@ export default ({
   }
 
   return <span>No filters configured.</span>;
-};
+}

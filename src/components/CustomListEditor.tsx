@@ -48,13 +48,21 @@ type CustomListEditorProps = {
   updateProperty?: (name: string, value) => void;
   updateSearchParam?: (name: string, value) => void;
   addAdvSearchQuery?: (builderName: string, query: AdvancedSearchQuery) => void;
-  updateAdvSearchQuery?: (builderName: string, query: AdvancedSearchQuery) => void;
-  moveAdvSearchQuery?: (builderName: string, id: string, targetId: string) => void;
+  updateAdvSearchQueryBoolean?: (
+    builderName: string,
+    id: string,
+    bool: string
+  ) => void;
+  moveAdvSearchQuery?: (
+    builderName: string,
+    id: string,
+    targetId: string
+  ) => void;
   removeAdvSearchQuery?: (builderName: string, id: string) => void;
   selectAdvSearchQuery?: (builderName: string, id: string) => void;
 };
 
-export default ({
+export default function CustomListEditor({
   collections,
   entries,
   entryPoints,
@@ -82,11 +90,11 @@ export default ({
   updateProperty,
   updateSearchParam,
   addAdvSearchQuery,
-  updateAdvSearchQuery,
+  updateAdvSearchQueryBoolean,
   moveAdvSearchQuery,
   removeAdvSearchQuery,
   selectAdvSearchQuery,
-}: CustomListEditorProps) => {
+}: CustomListEditorProps) {
   const { collections: listCollections, name } = properties;
 
   return (
@@ -164,7 +172,7 @@ export default ({
             library={library}
             languages={languages}
             addAdvSearchQuery={addAdvSearchQuery}
-            updateAdvSearchQuery={updateAdvSearchQuery}
+            updateAdvSearchQueryBoolean={updateAdvSearchQueryBoolean}
             moveAdvSearchQuery={moveAdvSearchQuery}
             removeAdvSearchQuery={removeAdvSearchQuery}
             selectAdvSearchQuery={selectAdvSearchQuery}
@@ -191,4 +199,4 @@ export default ({
       </div>
     </div>
   );
-};
+}

@@ -5,12 +5,12 @@ import { AdvancedSearchQuery } from "../interfaces";
 import AdvancedSearchFilter from "./AdvancedSearchFilter";
 
 export interface AdvancedSearchBooleanFilterProps {
-  onChange: (query: AdvancedSearchQuery) => void;
-  onMove: (id: string, targetId: string) => void;
-  onSelect?: (id: string) => void;
-  onRemove: (id: string) => void;
   query: AdvancedSearchQuery;
   selectedQueryId?: string;
+  onBooleanChange: (id: string, bool: string) => void;
+  onMove: (id: string, targetId: string) => void;
+  onSelect: (id: string) => void;
+  onRemove: (id: string) => void;
 }
 
 const renderSeparator = (query, index) => {
@@ -18,64 +18,46 @@ const renderSeparator = (query, index) => {
     return null;
   }
 
-  return (
-    <span>
-      {query.and ? "and" : "or"}
-    </span>
-  );
+  return <span>{query.and ? "and" : "or"}</span>;
 };
 
-export default ({
-  onChange,
+export default function AdvancedSearchBooleanFilter({
+  query,
+  selectedQueryId,
+  onBooleanChange,
   onMove,
   onSelect,
   onRemove,
-  query,
-  selectedQueryId,
-}: AdvancedSearchBooleanFilterProps) => {
+}: AdvancedSearchBooleanFilterProps) {
   const children = query && (query.and || query.or);
 
   if (!children) {
     return null;
   }
 
-  const boolSelect = React.useRef<HTMLSelectElement>(null);
+  const handleBooleanChange = (
+    event: React.SyntheticEvent<HTMLSelectElement>
+  ) => {
+    const bool = event.currentTarget.value;
 
-  const handleBoolChange = () => {
-    const bool = boolSelect.current?.value;
-
-    if (bool) {
-      onChange({
-        id: query.id,
-        [bool]: [
-          ...(query.and || query.or)
-        ]
-      });
+    if (!query[bool]) {
+      onBooleanChange?.(query.id, event.currentTarget.value);
     }
-  };
-
-  const handleChildChange = (changedChild: AdvancedSearchQuery) => {
-    const bool = query.and ? "and" : "or";
-    const children = query[bool];
-    const index = children.findIndex((child) => child.id === changedChild.id);
-    const nextChildren = [...children];
-
-    nextChildren[index] = changedChild;
-
-    const nextQuery = {
-      id: query.id,
-      [bool]: nextChildren,
-    };
-
-    onChange(nextQuery);
   };
 
   const handleClick = (event: React.SyntheticEvent) => {
     event.stopPropagation();
     event.preventDefault();
 
-    if (onSelect) {
-      onSelect(query.id);
+    onSelect?.(query.id);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (event.key === "Space") {
+      onSelect?.(query.id);
     }
   };
 
@@ -83,12 +65,13 @@ export default ({
     event.stopPropagation();
     event.preventDefault();
 
-    if (onRemove) {
-      onRemove(query.id);
-    }
+    onRemove?.(query.id);
   };
 
-  const [dropProps, drop]: [{ canDrop: boolean; isOver: boolean; }, ConnectDropTarget] = useDrop(
+  const [dropProps, drop]: [
+    { canDrop: boolean; isOver: boolean },
+    ConnectDropTarget
+  ] = useDrop(
     {
       accept: "filter",
       canDrop: (item: any) => item.id !== query.id,
@@ -104,9 +87,9 @@ export default ({
       collect: (monitor) => ({
         canDrop: !!monitor.canDrop(),
         isOver: !!monitor.isOver({ shallow: true }),
-      })
+      }),
     },
-    [query.id, onMove],
+    [query.id, onMove]
   );
 
   const className = classNames({
@@ -120,19 +103,24 @@ export default ({
       aria-selected={selectedQueryId === query.id}
       className={className}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
       ref={drop}
       role="treeitem"
+      tabIndex={0}
     >
       <header>
         <div>
           <select
-            ref={boolSelect}
-            onBlur={handleBoolChange}
-            onChange={handleBoolChange}
+            onBlur={handleBooleanChange}
+            onChange={handleBooleanChange}
             value={query.and ? "and" : "or"}
           >
-            <option aria-selected={!!query.and} value="and">All of these filters must be matched:</option>
-            <option aria-selected={!!query.or} value="or">Any of these filters may be matched:</option>
+            <option aria-selected={!!query.and} value="and">
+              All of these filters must be matched:
+            </option>
+            <option aria-selected={!!query.or} value="or">
+              Any of these filters may be matched:
+            </option>
           </select>
         </div>
 
@@ -140,23 +128,20 @@ export default ({
       </header>
 
       <ul>
-        {
-          children.map((child, index) => (
-            <li key={child.id}>
-              {renderSeparator(query, index)}
-              {" "}
-              <AdvancedSearchFilter
-                onChange={handleChildChange}
-                onMove={onMove}
-                onSelect={onSelect}
-                onRemove={onRemove}
-                query={child}
-                selectedQueryId={selectedQueryId}
-              />
-            </li>
-          ))
-        }
+        {children.map((child, index) => (
+          <li key={child.id}>
+            {renderSeparator(query, index)}{" "}
+            <AdvancedSearchFilter
+              query={child}
+              selectedQueryId={selectedQueryId}
+              onBooleanChange={onBooleanChange}
+              onMove={onMove}
+              onSelect={onSelect}
+              onRemove={onRemove}
+            />
+          </li>
+        ))}
       </ul>
     </div>
   );
-};
+}

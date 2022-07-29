@@ -17,19 +17,11 @@
     }
   }
 
-  .advanced-search-filter-viewer {
-    display: flex;
-    align-items: flex-start;
-    border-top: 1px solid #DDD;
-  }
-
   .advanced-search-filter-tree {
     display: flex;
     flex: 1 1 auto;
-    margin-top: 10px;
-    // border-radius: 5px;
-    // border: 1px solid #DDD;
-    // padding: 4px;
+    border-top: 1px solid $medium-gray;
+    padding-top: 10px;
     align-items: baseline;
 
     > span {
@@ -40,7 +32,7 @@
   .advanced-search-boolean-filter {
     flex-basis: 100%;
     border-radius: 5px;
-    border: 1px solid #DDD;
+    border: 1px solid $medium-gray;
     background: white;
 
     header {
@@ -53,7 +45,7 @@
 
       select {
         background-color: transparent;
-        border-color: #DDD;
+        border-color: $medium-gray;
         border-width: 1px 1px 1px 0;
       }
 

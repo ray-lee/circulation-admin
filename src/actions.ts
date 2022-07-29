@@ -127,8 +127,8 @@ export default class ActionCreator extends BaseActionCreator {
     "UPDATE_CUSTOM_LIST_EDITOR_SEARCH_PARAM";
   static readonly ADD_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY =
     "ADD_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY";
-  static readonly UPDATE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY =
-    "UPDATE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY";
+  static readonly UPDATE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY_BOOLEAN =
+    "UPDATE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY_BOOLEAN";
   static readonly MOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY =
     "MOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY";
   static readonly REMOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY =
@@ -936,14 +936,16 @@ export default class ActionCreator extends BaseActionCreator {
     };
   }
 
-  updateCustomListEditorAdvSearchQuery(
+  updateCustomListEditorAdvSearchQueryBoolean(
     builderName: string,
-    query: AdvancedSearchQuery
+    id: string,
+    bool: string
   ) {
     return {
-      type: ActionCreator.UPDATE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
+      type: ActionCreator.UPDATE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY_BOOLEAN,
       builderName,
-      query,
+      id,
+      bool,
     };
   }
 

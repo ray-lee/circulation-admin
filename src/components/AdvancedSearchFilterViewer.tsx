@@ -1,67 +1,34 @@
 import * as React from "react";
-import { useState } from "react";
 import { AdvancedSearchQuery } from "../interfaces";
 import AdvancedSearchFilter from "./AdvancedSearchFilter";
 
 export interface AdvancedSearchFilterViewerProps {
   query: AdvancedSearchQuery;
   selectedQueryId?: string;
-  showCodeViewer?: boolean;
-  onChange: (query: AdvancedSearchQuery) => void;
+  onBooleanChange: (id: string, bool: string) => void;
   onMove: (id: string, targetId: string) => void;
   onSelect?: (id: string) => void;
   onRemove: (id: string) => void;
 }
 
-export default ({
+export default function AdvancedSearchFilterViewer({
   query,
   selectedQueryId,
-  showCodeViewer = false,
-  onChange,
+  onBooleanChange,
   onMove,
   onSelect,
   onRemove,
-}: AdvancedSearchFilterViewerProps): JSX.Element => {
-  const [codeOpen, setCodeOpen] = useState(false);
-
-  const handleToggleCodeButtonClick = (event: React.SyntheticEvent) => {
-    event.stopPropagation();
-    event.preventDefault();
-
-    setCodeOpen(!codeOpen);
-  };
-
+}: AdvancedSearchFilterViewerProps): JSX.Element {
   return (
-    <div className="advanced-search-filter-viewer">
-      <div className="advanced-search-filter-tree" role="tree">
-        <AdvancedSearchFilter
-          onChange={onChange}
-          onMove={onMove}
-          onRemove={onRemove}
-          onSelect={onSelect}
-          query={query}
-          selectedQueryId={selectedQueryId}
-        />
-      </div>
-
-      {
-        showCodeViewer && (
-          <div className="advanced-search-filter-code">
-            <button
-              type="button"
-              onClick={handleToggleCodeButtonClick}
-            >
-              {codeOpen ? "-" : "{}"}
-            </button>
-
-            {codeOpen &&
-              <pre>
-                {JSON.stringify({ query }, (key, value) => (key === "id" ? undefined : value), 2)}
-              </pre>
-            }
-          </div>
-        )
-      }
+    <div className="advanced-search-filter-tree" role="tree">
+      <AdvancedSearchFilter
+        query={query}
+        selectedQueryId={selectedQueryId}
+        onBooleanChange={onBooleanChange}
+        onMove={onMove}
+        onRemove={onRemove}
+        onSelect={onSelect}
+      />
     </div>
   );
-};
+}

@@ -16,9 +16,10 @@ export interface CustomListSearchProps {
   search: () => void;
   updateSearchParam?: (name: string, value) => void;
   addAdvSearchQuery?: (builderName: string, query: AdvancedSearchQuery) => void;
-  updateAdvSearchQuery?: (
+  updateAdvSearchQueryBoolean?: (
     builderName: string,
-    query: AdvancedSearchQuery
+    id: string,
+    bool: string
   ) => void;
   moveAdvSearchQuery?: (
     builderName: string,
@@ -44,7 +45,7 @@ const CustomListSearch = ({
   updateSearchParam,
   search,
   addAdvSearchQuery,
-  updateAdvSearchQuery,
+  updateAdvSearchQueryBoolean,
   moveAdvSearchQuery,
   removeAdvSearchQuery,
   selectAdvSearchQuery,
@@ -76,7 +77,7 @@ const CustomListSearch = ({
         query={builder.query}
         selectedQueryId={builder.selectedQueryId}
         addQuery={addAdvSearchQuery}
-        updateQuery={updateAdvSearchQuery}
+        updateQueryBoolean={updateAdvSearchQueryBoolean}
         moveQuery={moveAdvSearchQuery}
         removeQuery={removeAdvSearchQuery}
         selectQuery={selectAdvSearchQuery}
