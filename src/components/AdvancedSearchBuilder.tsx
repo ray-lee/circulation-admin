@@ -19,7 +19,7 @@ export interface AdvancedSearchBuilderProps {
 export const fields = [
   { value: "genre", label: "genre" },
   { value: "language", label: "language" },
-  { value: "classification", label: "subject" },
+  { value: "classifications.term", label: "subject" },
   { value: "published", label: "publication date" },
   { value: "audience", label: "audience" },
   { value: "author", label: "author" },
