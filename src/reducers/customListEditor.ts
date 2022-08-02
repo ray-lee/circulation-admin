@@ -355,7 +355,7 @@ const initialStateForList = (
       draftState.entries.baselineTotalCount = customList.entry_count;
     }
 
-    // Carry over the search parameters from the previous state.
+    // Carry over the search parameters from the current state.
     draftState.searchParams = state.searchParams;
 
     draftState.error = error;
@@ -553,16 +553,44 @@ const handleUpdateCustomListEditorSearchParam = (
   });
 };
 
-let idCounter = 0;
+/**
+ * A counter for generating unique IDs for advanced search queries.
+ */
+let queryIdCounter = 0;
 
+/**
+ * Generate a new, unique advanced search query ID.
+ *
+ * @returns The query ID
+ */
 const newQueryId = (): string => {
-  const id = idCounter.toString();
+  const id = queryIdCounter.toString();
 
-  idCounter += 1;
+  queryIdCounter += 1;
 
   return id;
 };
 
+/**
+ * Add an advanced search query to a given query tree.
+ *
+ * @param query         The root of the query tree.
+ * @param targetId      The ID of the node in the query tree where the new query should be added.
+ *                      This is expected to be the ID of the root query, or some descendant of the
+ *                      root query. If the target is an boolean (and/or) query, the new query is
+ *                      added as a child of the target. If the target is a leaf query, a new
+ *                      boolean query is created at the location of the target, the target is made
+ *                      a child of the new boolean, and the new query is added as another child of
+ *                      the new boolean. If the new boolean query is the child of a boolean query,
+ *                      its operator is set to the opposite of the parent. Otherwise (if it is the
+ *                      root query), its operator is set to the preferredBool argument.
+ * @param newQuery      The query to add to the tree
+ * @param preferredBool If boolean operator ("and" or "or") to use when creating a boolean query
+ *                      at the root of the tree.
+ * @returns             A query tree that is the result of adding the new query to the given
+ *                      query at the target. If no query with the target ID is found in the given
+ *                      query, it is returned unchanged.
+ */
 const addDescendantQuery = (
   query: AdvancedSearchQuery,
   targetId: string,
@@ -584,6 +612,7 @@ const addDescendantQuery = (
 
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
+
       const updatedChild = addDescendantQuery(
         child,
         targetId,
@@ -622,6 +651,16 @@ const addDescendantQuery = (
   return query;
 };
 
+/**
+ * Remove an advanced search query from a given query tree.
+ *
+ * @param query    The root of the query tree.
+ * @param targetId The ID of the query to remove. This is expected to be the ID of the root query,
+ *                 or some descendant of the root query.
+ * @returns        A query tree that is the result of removing the specified query from the given
+ *                 query. If the target ID identifies the root query, null is returned. If no query
+ *                 with the target ID is found in the given query, it is returned unchanged.
+ */
 const removeDescendantQuery = (
   query: AdvancedSearchQuery,
   targetId: string
@@ -666,6 +705,16 @@ const removeDescendantQuery = (
   return query;
 };
 
+/**
+ * Find the path to an advanced search query in a given query tree.
+ *
+ * @param query    The root of the query tree.
+ * @param targetId The ID of the query to find. This is expected to be the ID of the root query,
+ *                 or some descendant of the root query.
+ * @returns        An array of query IDs, starting with the root query, and ending with the target
+ *                 ID. If no query with the target ID is found in the given query, null is
+ *                 returned.
+ */
 const findDescendantQueryPath = (
   query: AdvancedSearchQuery,
   targetId: string
@@ -691,6 +740,15 @@ const findDescendantQueryPath = (
   return null;
 };
 
+/**
+ * Find an advanced search query in a given query tree.
+ *
+ * @param query    The root of the query tree.
+ * @param targetId The ID of the query to find. This is expected to be the ID of the root query,
+ *                 or some descendant of the root query.
+ * @returns        The query with the target ID, if it exists in the query tree. Otherwise, null is
+ *                 returned.
+ */
 const findDescendantQuery = (
   query: AdvancedSearchQuery,
   targetId: string
@@ -721,10 +779,27 @@ const findDescendantQuery = (
   return null;
 };
 
+/**
+ * Get the default boolean operator for a given advanced search query builder.
+ *
+ * @param builderName The name of the query builder.
+ * @returns           The default boolean operator, which is "and" for the "include" query builder,
+ *                    and "or" for the "exclude" query builder.
+ */
 const getDefaultBooleanOperator = (builderName: string) => {
   return builderName === "include" ? "and" : "or";
 };
 
+/**
+ * Handle the ADD_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY action. This action is fired when the user
+ * adds a new filter to an advanced search query builder.
+ *
+ * @param state  The current state
+ * @param action The action, which should contain the following properties:
+ *               - builderName: The name of the query builder.
+ *               - query:       The new query.
+ * @returns      The next state
+ */
 const handleAddCustomListEditorAdvSearchQuery = (
   state: CustomListEditorState,
   action
@@ -740,22 +815,8 @@ const handleAddCustomListEditorAdvSearchQuery = (
     };
 
     if (!currentQuery) {
-      // If the initial query is an OR, don't select it. This allows additional ORs to be ANDed
-      // with the initial OR, instead of being added inside the OR.
-
       builder.query = newQuery;
-      builder.selectedQueryId = newQuery.or ? null : newQuery.id;
-    } else if (!selectedQueryId) {
-      // Now create an AND, add the initial query and the new query to it, and select it.
-
-      const id = newQueryId();
-
-      builder.query = {
-        id,
-        and: [currentQuery, newQuery],
-      };
-
-      builder.selectedQueryId = id;
+      builder.selectedQueryId = newQuery.id;
     } else {
       builder.query = addDescendantQuery(
         currentQuery,
@@ -767,6 +828,17 @@ const handleAddCustomListEditorAdvSearchQuery = (
   });
 };
 
+/**
+ * Handle the UPDATE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY_BOOLEAN action. This action is fired when
+ * the user changes the boolean operator (and/or) on a filter in an advanced search query builder.
+ *
+ * @param state  The current state
+ * @param action The action, which should contain the following properties:
+ *               - builderName: The name of the query builder.
+ *               - id:          The ID of the query to update.
+ *               - bool:        The new boolean operator for the query ("and" or "or").
+ * @returns      The next state
+ */
 const handleUpdateCustomListEditorAdvSearchQueryBoolean = (
   state: CustomListEditorState,
   action
@@ -788,6 +860,26 @@ const handleUpdateCustomListEditorAdvSearchQueryBoolean = (
   });
 };
 
+/**
+ * Handle the MOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY action. This action is fired when the user
+ * moves a filter to another filter in an advanced search query builder, typically through a
+ * drag-and-drop.
+ *
+ * Note: If a boolean has two filters, and one is dropped on the other, this results in the boolean
+ * operator being swapped. A move operation is really an add followed by a remove, and this is the
+ * result of the normal rules for adding and removing queries. When a new boolean group is created
+ * by the add operation, it is set to the opposite boolean operator of the parent; and when the
+ * remove operation leaves the original parent with only one child, the remaining child (now with
+ * the opposite boolean operator of the original parent) is lifted up, and the original parent is
+ * deleted.
+ *
+ * @param state  The current state
+ * @param action The action, which should contain the following properties:
+ *               - builderName: The name of the query builder.
+ *               - id:          The ID of the query to move.
+ *               - targetId:    The ID of query to which to move the specified query.
+ * @returns      The next state
+ */
 const handleMoveCustomListEditorAdvSearchQuery = (
   state: CustomListEditorState,
   action
@@ -795,9 +887,6 @@ const handleMoveCustomListEditorAdvSearchQuery = (
   return produce(state, (draftState) => {
     const { builderName, id, targetId } = action;
     const builder = draftState.searchParams.advanced[builderName];
-
-    console.log(`${id} -> ${targetId}`);
-
     const { query: currentQuery } = builder;
     const query = findDescendantQuery(currentQuery, id);
 
@@ -805,14 +894,6 @@ const handleMoveCustomListEditorAdvSearchQuery = (
       ...query,
       id: newQueryId(),
     };
-
-    // Note: If a boolean has two filters, and one is dropped on the other, this results in
-    // the boolean operator being swapped. A move operation is really an add followed by a remove,
-    // and this is the result of the normal rules for adding and removing queries. When a new
-    // boolean group is created by the add operation, it is set to the opposite boolean operator of
-    // the parent; and when the remove operation leaves the original parent with only one child,
-    // the remaining child (now with the opposite boolean operator of the original parent) is
-    // lifted up, and the original parent is deleted.
 
     const afterAddQuery = addDescendantQuery(
       currentQuery,
@@ -828,6 +909,16 @@ const handleMoveCustomListEditorAdvSearchQuery = (
   });
 };
 
+/**
+ * Handle the REMOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY action. This action is fired when the user
+ * removes a filter in an advanced search builder.
+ *
+ * @param state  The current state
+ * @param action The action, which should contain the following properties:
+ *               - builderName: The name of the query builder.
+ *               - id:          The ID of the query to remove.
+ * @returns      The next state
+ */
 const handleRemoveCustomListEditorAdvSearchQuery = (
   state: CustomListEditorState,
   action
@@ -863,6 +954,16 @@ const handleRemoveCustomListEditorAdvSearchQuery = (
   });
 };
 
+/**
+ * Handle the SELECT_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY action. This action is fired when the user
+ * clicks on a filter in an advanced search query builder.
+ *
+ * @param state  The current state
+ * @param action The action, which should contain the following properties:
+ *               - builderName: The name of the query builder.
+ *               - id:          The ID of the query to select.
+ * @returns      The next state
+ */
 const handleSelectCustomListEditorAdvSearchQuery = (
   state: CustomListEditorState,
   action
@@ -1131,9 +1232,11 @@ export const buildAdvSearchQuery = (
 
   if (excludeQuery) {
     const notQuery = {
-      not: {
-        ...excludeQuery,
-      },
+      not: [
+        {
+          ...excludeQuery,
+        },
+      ],
     };
 
     if (!includeQuery) {
@@ -1191,12 +1294,7 @@ export const buildSearchUrl = (
   searchParams: CustomListEditorSearchParams,
   library: string
 ): string => {
-  const {
-    entryPoint,
-    terms,
-    sort,
-    // language,
-  } = searchParams;
+  const { entryPoint, terms, sort } = searchParams;
 
   const queryParams = [];
 
@@ -1207,10 +1305,6 @@ export const buildSearchUrl = (
   if (sort) {
     queryParams.push(`order=${encodeURIComponent(sort)}`);
   }
-
-  // if (language) {
-  //   queryParams.push(`language=${encodeURIComponent(language)}`);
-  // }
 
   const advSearchQuery = buildAdvSearchQueryString(searchParams);
 
@@ -1237,7 +1331,6 @@ export const getCustomListEditorSearchUrl = (
   library: string
 ): string => {
   const { searchParams } = state;
-
   const { terms, advanced } = searchParams;
 
   if (terms || advanced.include.query || advanced.exclude.query) {
