@@ -33,11 +33,13 @@ export default function AdvancedSearchFilterInput({
   };
 
   const addFilter = () => {
-    if (filterKey && filterOp && filterValue.trim()) {
+    const filterValueTrimmed = filterValue.trim();
+
+    if (filterKey && filterOp && filterValueTrimmed) {
       onAdd?.({
         key: filterKey,
         op: filterOp,
-        value: filterValue,
+        value: filterValueTrimmed,
       });
 
       setFilterValue("");

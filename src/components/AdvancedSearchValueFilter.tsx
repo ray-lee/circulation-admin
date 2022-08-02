@@ -119,6 +119,7 @@ export default ({
       <span>
         {getFieldLabel(key)} {getOpSymbol(op)} {value}
       </span>
+
       <button onClick={handleRemoveButtonClick}>×</button>
     </div>
   );

@@ -7,7 +7,7 @@ export interface AdvancedSearchFilterViewerProps {
   selectedQueryId?: string;
   onBooleanChange: (id: string, bool: string) => void;
   onMove: (id: string, targetId: string) => void;
-  onSelect?: (id: string) => void;
+  onSelect: (id: string) => void;
   onRemove: (id: string) => void;
 }
 

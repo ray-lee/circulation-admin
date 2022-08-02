@@ -13,34 +13,34 @@ export interface AdvancedSearchFilterProps {
 }
 
 export default function AdvancedSearchFilter({
+  query,
+  selectedQueryId,
   onBooleanChange,
   onMove,
   onSelect,
   onRemove,
-  query,
-  selectedQueryId,
 }: AdvancedSearchFilterProps): JSX.Element {
   if (query) {
     if (query.and || query.or) {
       return (
         <AdvancedSearchBooleanFilter
+          query={query}
+          selectedQueryId={selectedQueryId}
           onBooleanChange={onBooleanChange}
           onMove={onMove}
           onSelect={onSelect}
           onRemove={onRemove}
-          query={query}
-          selectedQueryId={selectedQueryId}
         />
       );
     }
 
     return (
       <AdvancedSearchValueFilter
+        query={query}
+        selected={query.id === selectedQueryId}
         onMove={onMove}
         onSelect={onSelect}
         onRemove={onRemove}
-        query={query}
-        selected={query.id === selectedQueryId}
       />
     );
   }
