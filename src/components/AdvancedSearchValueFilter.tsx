@@ -8,7 +8,7 @@ import {
   useDrop,
 } from "react-dnd";
 import { AdvancedSearchQuery } from "../interfaces";
-import { operators } from "./AdvancedSearchBuilder";
+import { fields, operators } from "./AdvancedSearchBuilder";
 
 export interface AdvancedSearchValueFilterProps {
   query: AdvancedSearchQuery;
@@ -16,6 +16,12 @@ export interface AdvancedSearchValueFilterProps {
   onMove: (id: string, targetId: string) => void;
   onRemove: (id: string) => void;
   onSelect: (id: string) => void;
+}
+
+function getFieldLabel(value) {
+  const field = fields.find((field) => field.value === value);
+
+  return field?.label || value;
 }
 
 function getOpSymbol(value) {
@@ -111,7 +117,7 @@ export default ({
       tabIndex={0}
     >
       <span>
-        {key} {getOpSymbol(op)} {value}
+        {getFieldLabel(key)} {getOpSymbol(op)} {value}
       </span>
       <button onClick={handleRemoveButtonClick}>×</button>
     </div>
