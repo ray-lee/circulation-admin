@@ -446,6 +446,699 @@ describe("custom list editor reducer", () => {
     });
   });
 
+  context("on ADD_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY", () => {
+    const valueQuery = {
+      key: "title",
+      op: "contains",
+      value: "Frankenstein",
+    };
+
+    it("should add the query to the currently selected query", () => {
+      const state = {
+        ...initialState,
+        searchParams: {
+          ...initialState.searchParams,
+          advanced: {
+            ...initialState.searchParams.advanced,
+            include: {
+              ...initialState.searchParams.advanced.include,
+              query: {
+                id: "90",
+                and: [
+                  {
+                    id: "91",
+                    key: "title",
+                    value: "foo",
+                  },
+                  {
+                    id: "92",
+                    key: "title",
+                    value: "bar",
+                  },
+                ],
+              },
+              selectedQueryId: "90",
+            },
+          },
+        },
+      };
+
+      const nextState = reducer(state, {
+        type: ActionCreator.ADD_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
+        builderName: "include",
+        query: valueQuery,
+      });
+
+      expect(nextState.searchParams.advanced.include.query).to.deep.equal({
+        id: "90",
+        and: [
+          {
+            id: "91",
+            key: "title",
+            value: "foo",
+          },
+          {
+            id: "92",
+            key: "title",
+            value: "bar",
+          },
+          {
+            id: "0",
+            ...valueQuery,
+          },
+        ],
+      });
+
+      expect(nextState.searchParams.advanced.include.selectedQueryId).to.equal(
+        "90"
+      );
+    });
+
+    it("should add the query as the root query and select it, if there is no existing root query", () => {
+      const state = {
+        ...initialState,
+      };
+
+      const nextState = reducer(state, {
+        type: ActionCreator.ADD_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
+        builderName: "include",
+        query: valueQuery,
+      });
+
+      expect(nextState.searchParams.advanced.include.query).to.deep.equal({
+        id: "1",
+        ...valueQuery,
+      });
+
+      expect(nextState.searchParams.advanced.include.selectedQueryId).to.equal(
+        "1"
+      );
+    });
+
+    it("should add the query to the root query, if there is no selected query", () => {
+      const state = {
+        ...initialState,
+        searchParams: {
+          ...initialState.searchParams,
+          advanced: {
+            ...initialState.searchParams.advanced,
+            include: {
+              ...initialState.searchParams.advanced.include,
+              query: {
+                id: "90",
+                and: [
+                  {
+                    id: "91",
+                    key: "title",
+                    value: "foo",
+                  },
+                  {
+                    id: "92",
+                    key: "title",
+                    value: "bar",
+                  },
+                ],
+              },
+            },
+          },
+        },
+      };
+
+      const nextState = reducer(state, {
+        type: ActionCreator.ADD_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
+        builderName: "include",
+        query: valueQuery,
+      });
+
+      expect(nextState.searchParams.advanced.include.query).to.deep.equal({
+        id: "90",
+        and: [
+          {
+            id: "91",
+            key: "title",
+            value: "foo",
+          },
+          {
+            id: "92",
+            key: "title",
+            value: "bar",
+          },
+          {
+            id: "2",
+            ...valueQuery,
+          },
+        ],
+      });
+
+      expect(nextState.searchParams.advanced.include.selectedQueryId).to.equal(
+        null
+      );
+    });
+
+    it("should create a boolean AND query if a new query is added to a non-boolean root query in the include builder", () => {
+      const state = {
+        ...initialState,
+        searchParams: {
+          ...initialState.searchParams,
+          advanced: {
+            ...initialState.searchParams.advanced,
+            include: {
+              ...initialState.searchParams.advanced.include,
+              query: {
+                id: "91",
+                key: "title",
+                value: "foo",
+              },
+              selectedQueryId: "91",
+            },
+          },
+        },
+      };
+
+      const nextState = reducer(state, {
+        type: ActionCreator.ADD_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
+        builderName: "include",
+        query: valueQuery,
+      });
+
+      expect(nextState.searchParams.advanced.include.query).to.deep.equal({
+        id: "91",
+        and: [
+          {
+            id: "4",
+            key: "title",
+            value: "foo",
+          },
+          {
+            id: "3",
+            ...valueQuery,
+          },
+        ],
+      });
+
+      expect(nextState.searchParams.advanced.include.selectedQueryId).to.equal(
+        "91"
+      );
+    });
+
+    it("should create a boolean OR query if a new query is added to a non-boolean root query in the exclude builder", () => {
+      const state = {
+        ...initialState,
+        searchParams: {
+          ...initialState.searchParams,
+          advanced: {
+            ...initialState.searchParams.advanced,
+            exclude: {
+              ...initialState.searchParams.advanced.exclude,
+              query: {
+                id: "91",
+                key: "title",
+                value: "foo",
+              },
+              selectedQueryId: "91",
+            },
+          },
+        },
+      };
+
+      const nextState = reducer(state, {
+        type: ActionCreator.ADD_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
+        builderName: "exclude",
+        query: valueQuery,
+      });
+
+      expect(nextState.searchParams.advanced.exclude.query).to.deep.equal({
+        id: "91",
+        or: [
+          {
+            id: "6",
+            key: "title",
+            value: "foo",
+          },
+          {
+            id: "5",
+            ...valueQuery,
+          },
+        ],
+      });
+
+      expect(nextState.searchParams.advanced.exclude.selectedQueryId).to.equal(
+        "91"
+      );
+    });
+
+    it("should create a boolean query that is the opposite of the parent if a new query is added to a non-booean query", () => {
+      const state = {
+        ...initialState,
+        searchParams: {
+          ...initialState.searchParams,
+          advanced: {
+            ...initialState.searchParams.advanced,
+            include: {
+              ...initialState.searchParams.advanced.include,
+              query: {
+                id: "90",
+                and: [
+                  {
+                    id: "91",
+                    key: "title",
+                    value: "foo",
+                  },
+                  {
+                    id: "92",
+                    key: "title",
+                    value: "bar",
+                  },
+                ],
+              },
+              selectedQueryId: "92",
+            },
+          },
+        },
+      };
+
+      const nextState = reducer(state, {
+        type: ActionCreator.ADD_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
+        builderName: "include",
+        query: valueQuery,
+      });
+
+      expect(nextState.searchParams.advanced.include.query).to.deep.equal({
+        id: "90",
+        and: [
+          {
+            id: "91",
+            key: "title",
+            value: "foo",
+          },
+          {
+            id: "92",
+            or: [
+              {
+                id: "8",
+                key: "title",
+                value: "bar",
+              },
+              {
+                id: "7",
+                ...valueQuery,
+              },
+            ],
+          },
+        ],
+      });
+
+      expect(nextState.searchParams.advanced.include.selectedQueryId).to.equal(
+        "92"
+      );
+    });
+  });
+
+  context("on UPDATE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY_BOOLEAN", () => {
+    const state = {
+      ...initialState,
+      searchParams: {
+        ...initialState.searchParams,
+        advanced: {
+          ...initialState.searchParams.advanced,
+          include: {
+            ...initialState.searchParams.advanced.include,
+            query: {
+              id: "90",
+              and: [
+                {
+                  id: "91",
+                  key: "title",
+                  value: "foo",
+                },
+                {
+                  id: "92",
+                  key: "title",
+                  value: "bar",
+                },
+              ],
+            },
+            selectedQueryId: "92",
+          },
+        },
+      },
+    };
+
+    it("should change the boolean operator on the specified query", () => {
+      const nextState = reducer(state, {
+        type: ActionCreator.UPDATE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY_BOOLEAN,
+        builderName: "include",
+        id: "90",
+        bool: "or",
+      });
+
+      expect(nextState.searchParams.advanced.include.query).to.deep.equal({
+        id: "90",
+        or: [
+          {
+            id: "91",
+            key: "title",
+            value: "foo",
+          },
+          {
+            id: "92",
+            key: "title",
+            value: "bar",
+          },
+        ],
+      });
+    });
+
+    it("should do nothing if the id does not refer to a boolean query", () => {
+      const nextState = reducer(state, {
+        type: ActionCreator.UPDATE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY_BOOLEAN,
+        builderName: "include",
+        id: "92",
+        bool: "or",
+      });
+
+      expect(nextState).to.deep.equal(state);
+    });
+
+    it("should do nothing if the id does not refer any query", () => {
+      const nextState = reducer(state, {
+        type: ActionCreator.UPDATE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY_BOOLEAN,
+        builderName: "include",
+        id: "234",
+        bool: "or",
+      });
+
+      expect(nextState).to.deep.equal(state);
+    });
+  });
+
+  context("on MOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY", () => {
+    it("should add the specified query to the target, and remove it from its current parent", () => {
+      const state = {
+        ...initialState,
+        searchParams: {
+          ...initialState.searchParams,
+          advanced: {
+            ...initialState.searchParams.advanced,
+            include: {
+              ...initialState.searchParams.advanced.include,
+              query: {
+                id: "90",
+                and: [
+                  {
+                    id: "91",
+                    or: [
+                      {
+                        id: "92",
+                        key: "title",
+                        value: "foo",
+                      },
+                      {
+                        id: "93",
+                        key: "title",
+                        value: "bar",
+                      },
+                      {
+                        id: "94",
+                        key: "title",
+                        value: "baz",
+                      },
+                    ],
+                  },
+                  {
+                    id: "95",
+                    or: [
+                      {
+                        id: "96",
+                        key: "author",
+                        value: "alice",
+                      },
+                      {
+                        id: "97",
+                        key: "author",
+                        value: "ben",
+                      },
+                    ],
+                  },
+                ],
+              },
+              selectedQueryId: "92",
+            },
+          },
+        },
+      };
+
+      const nextState = reducer(state, {
+        type: ActionCreator.MOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
+        builderName: "include",
+        id: "92",
+        targetId: "95",
+      });
+
+      expect(nextState.searchParams.advanced.include.query).to.deep.equal({
+        id: "90",
+        and: [
+          {
+            id: "91",
+            or: [
+              {
+                id: "93",
+                key: "title",
+                value: "bar",
+              },
+              {
+                id: "94",
+                key: "title",
+                value: "baz",
+              },
+            ],
+          },
+          {
+            id: "95",
+            or: [
+              {
+                id: "96",
+                key: "author",
+                value: "alice",
+              },
+              {
+                id: "97",
+                key: "author",
+                value: "ben",
+              },
+              {
+                id: "9",
+                key: "title",
+                value: "foo",
+              },
+            ],
+          },
+        ],
+      });
+    });
+  });
+
+  context("on REMOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY", () => {
+    it("should remove the specified query", () => {
+      const state = {
+        ...initialState,
+        searchParams: {
+          ...initialState.searchParams,
+          advanced: {
+            ...initialState.searchParams.advanced,
+            include: {
+              ...initialState.searchParams.advanced.include,
+              query: {
+                id: "90",
+                and: [
+                  {
+                    id: "91",
+                    key: "title",
+                    value: "foo",
+                  },
+                  {
+                    id: "92",
+                    key: "title",
+                    value: "bar",
+                  },
+                  {
+                    id: "93",
+                    key: "title",
+                    value: "baz",
+                  },
+                ],
+              },
+              selectedQueryId: "92",
+            },
+          },
+        },
+      };
+
+      const nextState = reducer(state, {
+        type: ActionCreator.REMOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
+        builderName: "include",
+        id: "92",
+      });
+
+      expect(nextState.searchParams.advanced.include.query).to.deep.equal({
+        id: "90",
+        and: [
+          {
+            id: "91",
+            key: "title",
+            value: "foo",
+          },
+          {
+            id: "93",
+            key: "title",
+            value: "baz",
+          },
+        ],
+      });
+
+      expect(nextState.searchParams.advanced.include.selectedQueryId).to.equal(
+        "90"
+      );
+    });
+
+    it("should remove the parent boolean, if there is only one remaining child after the specified query is removed", () => {
+      const state = {
+        ...initialState,
+        searchParams: {
+          ...initialState.searchParams,
+          advanced: {
+            ...initialState.searchParams.advanced,
+            include: {
+              ...initialState.searchParams.advanced.include,
+              query: {
+                id: "90",
+                and: [
+                  {
+                    id: "91",
+                    key: "title",
+                    value: "foo",
+                  },
+                  {
+                    id: "92",
+                    key: "title",
+                    value: "bar",
+                  },
+                ],
+              },
+              selectedQueryId: "92",
+            },
+          },
+        },
+      };
+
+      const nextState = reducer(state, {
+        type: ActionCreator.REMOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
+        builderName: "include",
+        id: "92",
+      });
+
+      expect(nextState.searchParams.advanced.include.query).to.deep.equal({
+        id: "91",
+        key: "title",
+        value: "foo",
+      });
+
+      expect(nextState.searchParams.advanced.include.selectedQueryId).to.equal(
+        undefined
+      );
+    });
+  });
+
+  context("on SELECT_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY", () => {
+    it("should select the specified query", () => {
+      const state = {
+        ...initialState,
+        searchParams: {
+          ...initialState.searchParams,
+          advanced: {
+            ...initialState.searchParams.advanced,
+            include: {
+              ...initialState.searchParams.advanced.include,
+              query: {
+                id: "90",
+                and: [
+                  {
+                    id: "91",
+                    key: "title",
+                    value: "foo",
+                  },
+                  {
+                    id: "92",
+                    key: "title",
+                    value: "bar",
+                  },
+                ],
+              },
+              selectedQueryId: "92",
+            },
+          },
+        },
+      };
+
+      const nextState = reducer(state, {
+        type: ActionCreator.SELECT_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
+        builderName: "include",
+        id: "91",
+      });
+
+      expect(nextState.searchParams.advanced.include.selectedQueryId).to.equal(
+        "91"
+      );
+    });
+
+    it("should remove the parent boolean, if there is only one remaining child after the specified query is removed", () => {
+      const state = {
+        ...initialState,
+        searchParams: {
+          ...initialState.searchParams,
+          advanced: {
+            ...initialState.searchParams.advanced,
+            include: {
+              ...initialState.searchParams.advanced.include,
+              query: {
+                id: "90",
+                and: [
+                  {
+                    id: "91",
+                    key: "title",
+                    value: "foo",
+                  },
+                  {
+                    id: "92",
+                    key: "title",
+                    value: "bar",
+                  },
+                ],
+              },
+              selectedQueryId: "92",
+            },
+          },
+        },
+      };
+
+      const nextState = reducer(state, {
+        type: ActionCreator.REMOVE_CUSTOM_LIST_EDITOR_ADV_SEARCH_QUERY,
+        builderName: "include",
+        id: "92",
+      });
+
+      expect(nextState.searchParams.advanced.include.query).to.deep.equal({
+        id: "91",
+        key: "title",
+        value: "foo",
+      });
+
+      expect(nextState.searchParams.advanced.include.selectedQueryId).to.equal(
+        undefined
+      );
+    });
+  });
+
   context("on ADD_CUSTOM_LIST_EDITOR_ENTRY", () => {
     const searchResultData = {
       books: [
@@ -1146,7 +1839,7 @@ describe("custom list editor reducer", () => {
       const url = getCustomListEditorSearchUrl(state, library);
 
       expect(url).to.equal(
-        "/lib/search?q=foo%20bar%20baz&entrypoint=Book&order=title&language=eng"
+        "/lib/search?entrypoint=Book&order=title&q=foo%20bar%20baz"
       );
     });
 
@@ -1174,9 +1867,7 @@ describe("custom list editor reducer", () => {
       const library = "lib";
       const url = getCustomListEditorSearchUrl(state, library);
 
-      expect(url).to.equal(
-        "/lib/search?q=foo%20bar%20baz&order=title&language=eng"
-      );
+      expect(url).to.equal("/lib/search?order=title&q=foo%20bar%20baz");
     });
 
     it("should omit the order param if sort is null", () => {
@@ -1203,7 +1894,7 @@ describe("custom list editor reducer", () => {
       const library = "lib";
       const url = getCustomListEditorSearchUrl(state, library);
 
-      expect(url).to.equal("/lib/search?q=foo%20bar%20baz&language=eng");
+      expect(url).to.equal("/lib/search?q=foo%20bar%20baz");
     });
 
     it("should omit the language param if language is null", () => {

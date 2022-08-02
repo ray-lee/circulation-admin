@@ -849,7 +849,11 @@ const handleUpdateCustomListEditorAdvSearchQueryBoolean = (
     const { query: currentQuery } = builder;
     const targetQuery = findDescendantQuery(currentQuery, id);
 
-    if (targetQuery && !targetQuery[bool]) {
+    if (
+      targetQuery &&
+      (targetQuery.and || targetQuery.or) &&
+      !targetQuery[bool]
+    ) {
       const oppositeBool = bool === "and" ? "or" : "and";
       const children = targetQuery[oppositeBool];
 
