@@ -88,14 +88,9 @@ const CustomListSearch = ({
     );
   };
 
-  const canSearch = true;
-    // searchParams.terms ||
-    // searchParams.advanced.include.query ||
-    // searchParams.advanced.exclude.query;
-
   const searchForm = (
     <div className="search-titles">
-      <div className="entry-points" key="entry-point-options">
+      <div className="entry-points">
         <span>Search for:</span>
 
         <div className="entry-points-selection">
@@ -113,7 +108,7 @@ const CustomListSearch = ({
         </div>
       </div>
 
-      <div className="search-options" key="sort-options">
+      <div className="search-options">
         <span>Sort by:</span>
 
         <div className="search-options-selection">
@@ -131,9 +126,9 @@ const CustomListSearch = ({
         </div>
 
         <aside>
-          Note: Results can be sorted by attributes that are enabled in this
-          library's Lanes &amp; Filters configuration. Selecting "Title" or
-          "Author" will automatically filter out less relevant results.
+          Results can be sorted by attributes that are enabled in this library's
+          Lanes &amp; Filters configuration. Selecting "Title" or "Author" will
+          automatically filter out less relevant results.
         </aside>
       </div>
 
@@ -160,26 +155,44 @@ const CustomListSearch = ({
         />
       </div>
 
-      <button
-        className="btn left-align hidden"
-        disabled={!canSearch}
-        type="button"
-        onClick={search}
-      >
-        <span>
-          Search
-          <SearchIcon />
-        </span>
-      </button>
+      <div className="auto-update">
+        <span>Use search to:</span>
 
-      <div className="auto-update-options">
-        <EditableInput
-          type="checkbox"
-          name="auto-update"
-          checked={autoUpdate}
-          label={"Automatically keep this list updated using these search parameters"}
-          onChange={() => updateAutoUpdate?.(!autoUpdate)}
-        />
+        <div className="auto-update-selection">
+          <div>
+            <EditableInput
+              type="radio"
+              name="auto-update"
+              checked={autoUpdate}
+              label={"Automatically update this list"}
+              onChange={() => updateAutoUpdate?.(true)}
+            />
+
+            <aside>
+              The system will periodically execute this search and automatically
+              update the list with the results. The search results below
+              represent the titles that would be in the list if it were updated
+              now, but the actual contents of the list will change over time.
+            </aside>
+          </div>
+
+          <div>
+            <EditableInput
+              type="radio"
+              name="auto-update"
+              checked={!autoUpdate}
+              label={"Manually select titles"}
+              onChange={() => updateAutoUpdate?.(false)}
+            />
+
+            <aside>
+              Move the desired titles from the search results column on the left
+              to the column on the right to add them to the list. Titles may be
+              removed from the list automatically if they become unavailable,
+              but the list is otherwise fixed.
+            </aside>
+          </div>
+        </div>
       </div>
     </div>
   );
