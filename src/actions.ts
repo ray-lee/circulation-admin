@@ -31,6 +31,7 @@ import {
   SelfTestsData,
   PatronData,
   DiagnosticsData,
+  SitewideAnnouncementsData,
 } from "./interfaces";
 import { CollectionData } from "opds-web-client/lib/interfaces";
 import DataFetcher from "opds-web-client/lib/DataFetcher";
@@ -78,6 +79,7 @@ export default class ActionCreator extends BaseActionCreator {
   static readonly PATRON_AUTH_SERVICES = "PATRON_AUTH_SERVICES";
   static readonly EDIT_PATRON_AUTH_SERVICE = "EDIT_PATRON_AUTH_SERVICE";
   static readonly DELETE_PATRON_AUTH_SERVICE = "DELETE_PATRON_AUTH_SERVICE";
+  static readonly SITEWIDE_ANNOUNCEMENTS = "SITEWIDE_ANNOUNCEMENTS";
   static readonly SITEWIDE_SETTINGS = "SITEWIDE_SETTINGS";
   static readonly EDIT_SITEWIDE_SETTING = "EDIT_SITEWIDE_SETTING";
   static readonly DELETE_SITEWIDE_SETTING = "DELETE_SITEWIDE_SETTING";
@@ -1144,5 +1146,13 @@ export default class ActionCreator extends BaseActionCreator {
     return this.fetchJSON<DiagnosticsData>(ActionCreator.DIAGNOSTICS, url).bind(
       this
     );
+  }
+
+  fetchSitewideAnnouncements() {
+    const url = "/admin/announcements";
+    return this.fetchJSON<SitewideAnnouncementsData>(
+      ActionCreator.SITEWIDE_ANNOUNCEMENTS,
+      url
+    ).bind(this);
   }
 }
