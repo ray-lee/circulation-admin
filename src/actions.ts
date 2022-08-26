@@ -1155,4 +1155,11 @@ export default class ActionCreator extends BaseActionCreator {
       url
     ).bind(this);
   }
+
+  editSitewideAnnouncements(data: FormData) {
+    const url = "/admin/announcements";
+    return this.postForm(ActionCreator.EDIT_SEARCH_SERVICE, url, data).bind(
+      this
+    );
+  }
 }

@@ -1,11 +1,13 @@
 import * as React from "react";
 import { connect } from "react-redux";
 import { Alert } from "react-bootstrap";
+import { Panel, Button, Form } from "library-simplified-reusable-components";
 import LoadingIndicator from "opds-web-client/lib/components/LoadingIndicator";
 import EditableConfigList, {
   EditableConfigListStateProps,
   EditableConfigListDispatchProps,
   EditableConfigListOwnProps,
+  EditableConfigListProps,
 } from "./EditableConfigList";
 import ActionCreator from "../actions";
 import { SitewideAnnouncementsData, AnnouncementData } from "../interfaces";
@@ -24,6 +26,14 @@ export class SitewideAnnouncements extends EditableConfigList<
   identifierKey = "id";
   labelKey = "content";
 
+  private announcementsRef = React.createRef<AnnouncementsSection>();
+
+  constructor(props: EditableConfigListProps<SitewideAnnouncementsData>) {
+    super(props);
+
+    this.submit = this.submit.bind(this);
+  }
+
   render() {
     const headers = this.getHeaders();
 
@@ -31,6 +41,8 @@ export class SitewideAnnouncements extends EditableConfigList<
       !this.props.isFetching &&
       !this.props.editOrCreate &&
       this.props.data?.[this.listDataKey];
+
+    const canEdit = this.canEdit(this.props.data?.settings || {});
 
     return (
       <div className={this.getClassName()}>
@@ -50,13 +62,30 @@ export class SitewideAnnouncements extends EditableConfigList<
         {this.props.isFetching && <LoadingIndicator />}
 
         {canListAllData && (
-          <AnnouncementsSection
-            setting={this.props.data.settings}
-            value={this.props.data[this.listDataKey]}
+          <Form
+            onSubmit={this.submit}
+            className="no-border edit-form"
+            disableButton={!canEdit || this.props.isFetching}
+            content={[
+              <AnnouncementsSection
+                key="announcements-section"
+                setting={this.props.data.settings}
+                value={this.props.data[this.listDataKey]}
+                ref={this.announcementsRef}
+              />
+            ]}
           />
         )}
       </div>
     );
+  }
+
+  async submit(data: FormData) {
+    const announcements = this.announcementsRef.current.getValue();
+
+    data?.set("announcements", JSON.stringify(announcements));
+
+    await this.editItem(data);
   }
 }
 
@@ -66,7 +95,7 @@ function mapStateToProps(state, ownProps) {
   };
 
   return {
-    data: data,
+    data,
     responseBody: state.editor.sitewideAnnouncements?.successMessage,
     fetchError: state.editor.sitewideAnnouncements.fetchError,
     formError: state.editor.sitewideAnnouncements.formError,
@@ -80,6 +109,7 @@ function mapDispatchToProps(dispatch, ownProps) {
   const actions = new ActionCreator(null, ownProps.csrfToken);
   return {
     fetchData: () => dispatch(actions.fetchSitewideAnnouncements()),
+    editItem: (data: FormData) => dispatch(actions.editSitewideAnnouncements(data)),
   };
 }
 
