@@ -4,6 +4,7 @@ import complaints, { ComplaintsState } from "./complaints";
 import classifications, { ClassificationsState } from "./classifications";
 import bookCoverPreview, { BookCoverPreviewState } from "./bookCoverPreview";
 import bookCover from "./bookCover";
+import config, { ConfigState } from "./config";
 import customListsForBook from "./customListsForBook";
 import circulationEvents, { CirculationEventsState } from "./circulationEvents";
 import stats, { StatsState } from "./stats";
@@ -78,6 +79,7 @@ import {
 export interface State {
   book: BookState;
   complaints: ComplaintsState;
+  config: ConfigState;
   classifications: ClassificationsState;
   bookCoverPreview: BookCoverPreviewState;
   bookCover: FetchEditState<string>;
@@ -125,6 +127,7 @@ export interface State {
 export default combineReducers<State>({
   book,
   complaints,
+  config,
   classifications,
   bookCoverPreview,
   bookCover,
