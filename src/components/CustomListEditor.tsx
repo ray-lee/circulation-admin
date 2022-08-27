@@ -7,7 +7,6 @@ import {
   LanguagesData,
   LibraryData,
   CollectionData as AdminCollectionData,
-  FeatureFlags,
 } from "../interfaces";
 
 import {
@@ -25,7 +24,7 @@ type CustomListEditorProps = {
   collections?: AdminCollectionData[];
   entries?: CustomListEditorEntriesData;
   entryPoints?: string[];
-  featureFlags?: FeatureFlags;
+  isAutoUpdateEnabled?: boolean;
   isFetchingMoreCustomListEntries: boolean;
   isFetchingSearchResults: boolean;
   isFetchingMoreSearchResults: boolean;
@@ -70,7 +69,7 @@ export default function CustomListEditor({
   collections,
   entries,
   entryPoints,
-  featureFlags,
+  isAutoUpdateEnabled,
   isFetchingMoreCustomListEntries,
   isFetchingSearchResults,
   isFetchingMoreSearchResults,
@@ -187,7 +186,7 @@ export default function CustomListEditor({
             startingTitle={startingTitle}
             library={library}
             languages={languages}
-            showAutoUpdate={featureFlags?.enableAutoList}
+            showAutoUpdate={isAutoUpdateEnabled}
             addAdvSearchQuery={addAdvSearchQuery}
             updateAdvSearchQueryBoolean={updateAdvSearchQueryBoolean}
             moveAdvSearchQuery={moveAdvSearchQuery}
