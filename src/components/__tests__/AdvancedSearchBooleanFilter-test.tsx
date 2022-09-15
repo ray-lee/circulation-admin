@@ -277,9 +277,9 @@ describe("AdvancedSearchBooleanFilter", () => {
       </DndProvider>
     );
 
-    const element = wrapper.find(".advanced-search-boolean-filter");
-
-    expect(element.prop("className")).to.contain(" selected");
+    expect(
+      wrapper.find(".advanced-search-boolean-filter").hasClass("selected")
+    ).to.equal(true);
   });
 
   it("should not apply the selected class when readOnly is true", () => {
@@ -297,8 +297,8 @@ describe("AdvancedSearchBooleanFilter", () => {
       </DndProvider>
     );
 
-    const element = wrapper.find(".advanced-search-boolean-filter");
-
-    expect(element.prop("className")).to.not.contain(" selected");
+    expect(
+      wrapper.find(".advanced-search-boolean-filter").hasClass("selected")
+    ).to.equal(false);
   });
 });
